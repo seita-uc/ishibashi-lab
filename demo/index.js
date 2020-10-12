@@ -51,66 +51,80 @@
     status: taskStatus.Created,
   };
 
-  // managerがtaskを作る
-  console.log("task created: ", task);
+  for (let i = 0; i < 3; i++) {
+    console.log(`\n${i + 1} round\n`);
 
-  task.status = taskStatus.InProgress;
-  console.log("task in progress: ", task);
+    // managerがtaskを作る
+    console.log("task created: ", task);
 
-  task.status = taskStatus.InReview;
-  console.log("task submitted: ", task);
+    task.status = taskStatus.InProgress;
+    console.log("task in progress: ", task);
 
-  task.evaluation.worker = evaluation.Satisfactory;
-  console.log("evaluator evaluated task: ", task);
+    task.status = taskStatus.InReview;
+    console.log("task submitted: ", task);
 
-  task.evaluation.manager = evaluation.Satisfactory;
-  console.log("worker evaluated manager: ", manager);
+    task.evaluation.worker = evaluation.Satisfactory;
+    console.log("evaluator evaluated worker: ", task);
 
-  task.status = taskStatus.Completed;
-  console.log("task completed: ", task);
+    task.evaluation.manager = evaluation.Satisfactory;
+    console.log("worker evaluated manager: ", task);
 
-  // evaluationに応じてreputationが変動する
-  if (task.status == taskStatus.Completed) {
-    // workerのretupation反映
-    switch (task.evaluation.worker) {
-      case evaluation.Unsatisfactory:
-        worker.reputation -= task.payouts.worker;
-        break;
-      case evaluation.Satisfactory:
-        worker.reputation += task.payouts.worker;
-        break;
-      case evaluation.Excellent:
-        worker.reputation += task.payouts.worker * 1.5;
-        break;
-      default:
+    task.status = taskStatus.Completed;
+    console.log("task completed: ", task);
+
+    // evaluationに応じてreputationが変動する
+    if (task.status == taskStatus.Completed) {
+      // workerのretupation反映
+      switch (task.evaluation.worker) {
+        case evaluation.Unsatisfactory:
+          worker.reputation -= task.payouts.worker;
+          break;
+        case evaluation.Satisfactory:
+          worker.reputation += task.payouts.worker;
+          break;
+        case evaluation.Excellent:
+          worker.reputation += task.payouts.worker * 1.5;
+          break;
+        default:
+      }
+
+      // managerのretupation反映
+      switch (task.evaluation.manager) {
+        case evaluation.Unsatisfactory:
+          manager.reputation -= task.payouts.manager;
+          break;
+        case evaluation.Satisfactory:
+          manager.reputation += task.payouts.manager;
+          break;
+        case evaluation.Excellent:
+          manager.reputation += task.payouts.manager * 1.5;
+          break;
+        default:
+      }
+
+      // 全員のpayout実施
+      worker.points += task.payouts.worker;
+      manager.points += task.payouts.manager;
+      evaluator.points += task.payouts.evaluator;
     }
 
-    // managerのretupation反映
-    switch (task.evaluation.manager) {
-      case evaluation.Unsatisfactory:
-        manager.reputation -= task.payouts.manager;
-        break;
-      case evaluation.Satisfactory:
-        manager.reputation += task.payouts.manager;
-        break;
-      case evaluation.Excellent:
-        manager.reputation += task.payouts.manager * 1.5;
-        break;
-      default:
-    }
-
-    // 全員のpayout実施
-    worker.points += task.payouts.worker;
-    manager.points += task.payouts.manager;
-    evaluator.points += task.payouts.evaluator;
+    console.log("\n------result------\n");
+    console.log("worker: ", worker);
+    console.log("manager: ", manager);
+    console.log("evaluator: ", evaluator);
+    console.log("\n------------------\n");
   }
 
-  console.log("\n------result------\n");
+  console.log("\n---final result---\n");
   console.log("worker: ", worker);
   console.log("manager: ", manager);
   console.log("evaluator: ", evaluator);
+  console.log("\n------------------\n");
 
   // completeにした時点で給与が評価に従って支払われるがのちに時価総額を加味した金額にする
+  // reputationを時価総額に加味した形にするか
+  // TODO どうやってポテンシャル評価をするのか
+  // TODO 各人のポテンシャルをあらかじめ与えておいてreputationが上昇+給与が上昇する仕組みにするか
   // そうすることでevaluatorの評価にのみ左右されずにすむ
 
   console.log("\nsimulation done");
