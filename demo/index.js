@@ -11,9 +11,9 @@ const role = {
 };
 // potentialを仮置き
 const potential = {
-  High: 80,
-  Middle: 50,
-  Low: 20,
+  High: 90,
+  Middle: 70,
+  Low: 50,
 };
 const manager = {
   reputation: 0,
@@ -26,18 +26,18 @@ const workerPotentialHigh = {
   points: 0,
   potential: potential.High,
 };
-//const workerPotentialMiddle = {
-//reputation: 0,
-//role: role.Worker,
-//points: 0,
-//potential: potential.Middle,
-//};
-//const workerPotentialLow = {
-//reputation: 0,
-//role: role.Worker,
-//points: 0,
-//potential: potential.Low,
-//};
+const workerPotentialMiddle = {
+  reputation: 0,
+  role: role.Worker,
+  points: 0,
+  potential: potential.Middle,
+};
+const workerPotentialLow = {
+  reputation: 0,
+  role: role.Worker,
+  points: 0,
+  potential: potential.Low,
+};
 // workerのpotential*乱数で
 
 // 三段階評価
@@ -75,7 +75,7 @@ function getTaskProgress(potential) {
 }
 
 (async () => {
-  console.log("simulation started\n");
+  //console.log("simulation started\n");
 
   const task = {
     description: "demo task",
@@ -93,14 +93,7 @@ function getTaskProgress(potential) {
   };
 
   // managerがtaskを作る
-  console.log("task created: ", task);
-  task.progress = getTaskProgress(workerPotentialHigh.potential);
-
-  console.log("\n---final result---\n");
-  //console.log("worker: ", worker);
-  //console.log("manager: ", manager);
-  //console.log("evaluator: ", evaluator);
-  console.log("\n------------------\n");
+  //task.progress = getTaskProgress(workerPotentialHigh.potential);
 
   // completeにした時点で給与が評価に従って支払われるがのちに時価総額を加味した金額にする
   // reputationを時価総額に加味した形にするか
@@ -109,8 +102,10 @@ function getTaskProgress(potential) {
   // そうすることでevaluatorの評価にのみ左右されずにすむ
 
   for (let i = 0; i < 100; i++) {
-    const progress = getTaskProgress(workerPotentialHigh.potential);
-    console.log(progress);
+    const progress1 = getTaskProgress(workerPotentialHigh.potential);
+    const progress2 = getTaskProgress(workerPotentialMiddle.potential);
+    const progress3 = getTaskProgress(workerPotentialLow.potential);
+    console.log(`${progress1},${progress2},${progress3}`);
   }
 
   // TODO taskのevaluationによるreputationの付与・評価
@@ -133,6 +128,4 @@ function getTaskProgress(potential) {
     }
     worker.points += payout;
   }
-
-  console.log("\nsimulation done");
 })();
