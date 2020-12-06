@@ -5,7 +5,7 @@ export default class Evaluator extends Worker {
   potentialApproximationRate: number = 80;
 
   constructor(id: number) {
-    super(id);
+    super(id, 100);
   }
 
   evaluate(task: Task) {
@@ -15,7 +15,9 @@ export default class Evaluator extends Worker {
         worker.reputation += worker.potential / 10;
         continue;
       }
-      worker.reputation -= 5;
+      // potentialの分だけ減少値が小さくなるようにする
+      // 全員同じだけ減少させるか？？
+      worker.reputation -= 100 / worker.potential;
     }
   }
 }

@@ -5,9 +5,9 @@ export default class Worker {
   potential: number; // 1-100の乱数
   reputation: number;
 
-  constructor(id: number) {
+  constructor(id: number, potential: number) {
     this.id = id;
-    this.potential = getRandomInt(100);
+    this.potential = potential;
     this.reputation = getRandomInt(100);
   }
 }

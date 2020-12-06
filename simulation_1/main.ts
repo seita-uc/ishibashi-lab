@@ -1,44 +1,44 @@
+import * as math from "mathjs";
+
 import Worker from "./class/worker";
 import Evaluator from "./class/evaluator";
+import Manager from "./class/manager";
 import Task from "./class/task";
-
-// reputationは所与
-// workerは10人
-// 一つのタスクに5人
-// 5人の合計値が250を超えないと成功しない
-
-// managerによりreputationが高い順にworkerがtaskにアサインされる
-// それぞれの役割ごとにクラスに分ける
 
 // workerの生成
 const workers: Worker[] = [];
 for (let i = 0; i < 10; i++) {
-  const w: Worker = new Worker(i);
+  const w: Worker = new Worker(i, i * 10 + 10);
   workers.push(w);
 }
 
-const workersOrderedByReputation: Worker[] = workers.sort(
-  (aw: Worker, bw: Worker) => (aw.reputation < bw.reputation ? 1 : -1)
+const medianPotential: number = math.median(
+  workers.map((w: Worker) => w.potential)
 );
 
-const manager: Worker = new Worker(100);
+const manager: Manager = new Manager(100);
+const evaluator: Evaluator = new Evaluator(99);
 
-for (let v = 0; v < 10; v++) {
-  const task: Task = new Task(0, manager);
+for (let i = 0; i < 100; i++) {
+  const task1: Task = new Task(0, manager);
+  const task2: Task = new Task(1, manager);
+  const task3: Task = new Task(2, manager);
+  const tasks: Task[] = [task1, task2, task3];
 
-  for (let i = 0; i < 5; i++) {
-    task.assignWorker(workersOrderedByReputation[i]);
+  manager.assignWorkersToTasks(workers, tasks);
+
+  for (const task of tasks) {
+    // workersのpotentialの中央値*taskの人数が成功の閾値
+    // TODO 成功の閾値によって成功率が変化してしまうため、どのように閾値を算出するかちゃんと考える必要がある
+    const threshold = medianPotential * task.assignedWorkers.length;
+    task.setThresholdToBeCompleted(threshold);
+
+    evaluator.evaluate(task);
+    //console.log(task.isCompleted());
   }
-
-  console.log(workers);
-  console.log(task);
-  console.log(task.isCompleted());
-
-  const evaluator: Evaluator = new Evaluator(99);
-  evaluator.evaluate(task);
-
-  console.log(task);
-  console.log(workers);
+  const successfulTasks: Task[] = tasks.filter((t: Task) => t.isCompleted());
+  const successRate: number = successfulTasks.length / tasks.length;
+  console.log(successRate * 100);
 
   // taskの成否によってreputationが増減する
   // taskが失敗 => reputation - 5
@@ -46,3 +46,4 @@ for (let v = 0; v < 10; v++) {
   // reputation + (potentialの近似値/10)
   // 近似率から値を求める => 方法は?
 }
+console.log(workers);
