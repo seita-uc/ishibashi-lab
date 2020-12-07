@@ -3,6 +3,8 @@ import * as math from "mathjs";
 import Worker from "./class/worker";
 import Manager from "./class/manager";
 import Task from "./class/task";
+import Market from "./class/market";
+import Stock from "./class/stock";
 
 // 試行回数
 const tryNum: number = 1000;
@@ -16,11 +18,14 @@ for (let i = 0; i < workerNum; i++) {
   workers.push(w);
 }
 
+const stocks: Stock[] = workers.map((w: Worker) => new Stock(w.id));
+const market: Market = new Market(stocks);
+
 const medianPotential: number = math.median(
   workers.map((w: Worker) => w.potential)
 );
 
-const manager: Manager = new Manager(100);
+const manager: Manager = new Manager(workerNum + 1);
 
 for (let i = 0; i < tryNum; i++) {
   const tasks: Task[] = [];
@@ -41,12 +46,13 @@ for (let i = 0; i < tryNum; i++) {
     // taskが終了してworkerにpotentialがpopulateされる
     task.end();
   }
+
   const successfulTasks: Task[] = tasks.filter((t: Task) => t.isCompleted());
   const successRate: number = successfulTasks.length / tasks.length;
   console.log(successRate * 100);
 
+  console.log(market);
   // TODO taskが終わるたびに、valueの売買を行う
   // 各workerが他のworkerのpreceivedPotentialを保持していて、一緒のtaskをやれば一旦potentialの近似値がわかる
   // もしperceivedPotentialとvalueの値が乖離していたら売買する
 }
-console.log(workers);
