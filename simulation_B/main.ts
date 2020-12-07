@@ -5,6 +5,7 @@ import Manager from "./class/manager";
 import Task from "./class/task";
 import Market from "./class/market";
 import Stock from "./class/stock";
+import Order from "./class/order";
 
 // 試行回数
 const tryNum: number = 1000;
@@ -50,6 +51,28 @@ for (let i = 0; i < tryNum; i++) {
   const successfulTasks: Task[] = tasks.filter((t: Task) => t.isCompleted());
   const successRate: number = successfulTasks.length / tasks.length;
   console.log(successRate * 100);
+
+  for (const w of workers) {
+    for (const entry of w.perveivedPotentials.entries()) {
+      const workerId: number = entry[0];
+      const perceivedPotential: number = entry[1];
+      const stock: Stock = market.stocks.get(workerId);
+      if (stock.latestPrice < perceivedPotential) {
+        console.log("buy: ", stock);
+        // TODO 買い注文を出す
+        const order: Order = new Order(stock.id, "ask", stock.latestPrice);
+        market.setOrder(order);
+        continue;
+      }
+      if (stock.latestPrice > perceivedPotential) {
+        console.log("sell: ", stock);
+        // TODO 売り注文を出す
+        const order: Order = new Order(stock.id, "bid", stock.latestPrice);
+        market.setOrder(order);
+        continue;
+      }
+    }
+  }
 
   console.log(market);
   // TODO taskが終わるたびに、valueの売買を行う

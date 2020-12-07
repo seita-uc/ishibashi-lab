@@ -2,7 +2,7 @@ import Order from "./order";
 import Stock from "./stock";
 
 export default class Market {
-  orders: Order[];
+  orders: Order[] = [];
   stocks: Map<number, Stock> = new Map<number, Stock>();
 
   constructor(stocks: Stock[]) {
