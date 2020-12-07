@@ -36,11 +36,9 @@ for (let i = 0; i < tryNum; i++) {
   }
 
   manager.assignWorkersToTasks(workers, tasks);
-  //console.log(tasks);
 
   for (const task of tasks) {
     // workersのpotentialの中央値*taskの人数が成功の閾値
-    // TODO 成功の閾値によって成功率が変化してしまうため、どのように閾値を算出するかちゃんと考える必要がある
     const threshold = medianPotential * task.assignedWorkers.length;
     task.setThresholdToBeCompleted(threshold);
 

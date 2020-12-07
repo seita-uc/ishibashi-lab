@@ -32,7 +32,6 @@ for (let i = 0; i < tryNum; i++) {
   }
 
   manager.assignWorkersToTasks(workers, tasks);
-  //console.log(tasks);
 
   for (const task of tasks) {
     // workersのpotentialの中央値*taskの人数が成功の閾値
@@ -45,11 +44,5 @@ for (let i = 0; i < tryNum; i++) {
   const successfulTasks: Task[] = tasks.filter((t: Task) => t.isCompleted());
   const successRate: number = successfulTasks.length / tasks.length;
   console.log(successRate * 100);
-
-  // taskの成否によってreputationが増減する
-  // taskが失敗 => reputation - 5
-  // taskが成功した場合はevaluatorがworkerのpotentialの近似値によって評価する
-  // reputation + (potentialの近似値/10)
-  // 近似率から値を求める => 方法は?
 }
 console.log(workers);
