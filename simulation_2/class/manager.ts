@@ -16,19 +16,9 @@ export default class Manager extends Worker {
     for (const w of workers.sort((aw: Worker, bw: Worker) =>
       aw.reputation < bw.reputation ? 1 : -1
     )) {
-      tasks.sort((at: Task, bt: Task) => {
-        const as = at.getReputationSum();
-        const bs = bt.getReputationSum();
-        if (as !== bs) {
-          return as < bs ? 1 : -1;
-        }
-        const al = at.assignedWorkers.length;
-        const bl = bt.assignedWorkers.length;
-        if (al === bl) {
-          return 0;
-        }
-        return al < bl ? 1 : -1;
-      });
+      tasks.sort((at: Task, bt: Task) =>
+        at.getReputationSum() < bt.getReputationSum() ? 1 : -1
+      );
       // 一番reputationの合計値が低いtaskにworkerをassignする
       const lastIndex = tasks.length - 1;
       tasks[lastIndex].assignWorker(w);

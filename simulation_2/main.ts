@@ -5,14 +5,9 @@ import Evaluator from "./class/evaluator";
 import Manager from "./class/manager";
 import Task from "./class/task";
 
-// 試行回数
-const tryNum: number = 100;
-const workerNum: number = 100;
-const taskNum: number = 30;
-
 // workerの生成
 const workers: Worker[] = [];
-for (let i = 0; i < workerNum; i++) {
+for (let i = 0; i < 100; i++) {
   const w: Worker = new Worker(i, i * 10 + 10);
   workers.push(w);
 }
@@ -24,15 +19,14 @@ const medianPotential: number = math.median(
 const manager: Manager = new Manager(100);
 const evaluator: Evaluator = new Evaluator(99);
 
-for (let i = 0; i < tryNum; i++) {
-  const tasks: Task[] = [];
-  for (let v = 0; v < taskNum; v++) {
+for (let i = 0; i < 1000; i++) {
+  let tasks: Task[] = [];
+  for (let v = 0; v < 20; v++) {
     const task: Task = new Task(v, manager);
     tasks.push(task);
   }
 
   manager.assignWorkersToTasks(workers, tasks);
-  //console.log(tasks);
 
   for (const task of tasks) {
     // workersのpotentialの中央値*taskの人数が成功の閾値
