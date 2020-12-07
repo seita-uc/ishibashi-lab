@@ -19,6 +19,18 @@ export default class Task {
     this.assignedWorkers.push(worker);
   }
 
+  // task終了時に他のworkerのpotentialを認識する
+  end() {
+    for (const worker of this.assignedWorkers) {
+      for (const w of this.assignedWorkers) {
+        if (worker.id === w.id) {
+          continue;
+        }
+        worker.setPerveivedPotential(w.id, w.potential);
+      }
+    }
+  }
+
   isCompleted(): boolean {
     const potentials: number[] = this.assignedWorkers.map(
       (w: Worker) => w.potential
@@ -27,10 +39,10 @@ export default class Task {
     return sum > this.thresholdToBeCompleted;
   }
 
-  getReputationSum(): number {
+  getValueSum(): number {
     let sum: number = 0;
     for (const w of this.assignedWorkers) {
-      sum += w.reputation;
+      sum += w.value;
     }
     return sum;
   }

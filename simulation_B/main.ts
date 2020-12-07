@@ -1,13 +1,17 @@
 import * as math from "mathjs";
 
 import Worker from "./class/worker";
-import Evaluator from "./class/evaluator";
 import Manager from "./class/manager";
 import Task from "./class/task";
 
+// 試行回数
+const tryNum: number = 1000;
+const workerNum: number = 100;
+const taskNum: number = 30;
+
 // workerの生成
 const workers: Worker[] = [];
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < workerNum; i++) {
   const w: Worker = new Worker(i, i * 10 + 10);
   workers.push(w);
 }
@@ -17,16 +21,16 @@ const medianPotential: number = math.median(
 );
 
 const manager: Manager = new Manager(100);
-const evaluator: Evaluator = new Evaluator(99);
 
-for (let i = 0; i < 1000; i++) {
-  let tasks: Task[] = [];
-  for (let v = 0; v < 20; v++) {
+for (let i = 0; i < tryNum; i++) {
+  const tasks: Task[] = [];
+  for (let v = 0; v < taskNum; v++) {
     const task: Task = new Task(v, manager);
     tasks.push(task);
   }
 
   manager.assignWorkersToTasks(workers, tasks);
+  //console.log(tasks);
 
   for (const task of tasks) {
     // workersのpotentialの中央値*taskの人数が成功の閾値
@@ -34,16 +38,15 @@ for (let i = 0; i < 1000; i++) {
     const threshold = medianPotential * task.assignedWorkers.length;
     task.setThresholdToBeCompleted(threshold);
 
-    evaluator.evaluate(task);
+    // taskが終了してworkerにpotentialがpopulateされる
+    task.end();
   }
   const successfulTasks: Task[] = tasks.filter((t: Task) => t.isCompleted());
   const successRate: number = successfulTasks.length / tasks.length;
   console.log(successRate * 100);
 
-  // taskの成否によってreputationが増減する
-  // taskが失敗 => reputation - 5
-  // taskが成功した場合はevaluatorがworkerのpotentialの近似値によって評価する
-  // reputation + (potentialの近似値/10)
-  // 近似率から値を求める => 方法は?
+  // TODO taskが終わるたびに、valueの売買を行う
+  // 各workerが他のworkerのpreceivedPotentialを保持していて、一緒のtaskをやれば一旦potentialの近似値がわかる
+  // もしperceivedPotentialとvalueの値が乖離していたら売買する
 }
 console.log(workers);
