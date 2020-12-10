@@ -6,20 +6,24 @@ export default class Task {
   manager: Worker;
   assignedWorkers: Worker[] = [];
 
-  constructor(id: number, manager: Worker) {
+  constructor(id: number, manager: Worker, threshold: number) {
     this.id = id;
     this.manager = manager;
-  }
-
-  setThresholdToBeCompleted(threshold: number) {
     this.thresholdToBeCompleted = threshold;
   }
+
+  //setThresholdToBeCompleted(threshold: number) {
+  //this.thresholdToBeCompleted = threshold;
+  //}
 
   assignWorker(worker: Worker) {
     this.assignedWorkers.push(worker);
   }
 
   isCompleted(): boolean {
+    if (this.assignedWorkers.length === 0) {
+      return false;
+    }
     const potentials: number[] = this.assignedWorkers.map(
       (w: Worker) => w.potential
     );
