@@ -4,7 +4,7 @@ export default class Worker {
   id: number; //連番
   potential: number; // 1-100の乱数
   value: number;
-  perveivedPotentials: Map<number, number> = new Map<number, number>();
+  perceivedPotentials: Map<number, number> = new Map<number, number>();
 
   // TODO coinの概念を導入する
   constructor(id: number, potential: number) {
@@ -13,7 +13,7 @@ export default class Worker {
     this.value = getRandomInt(100);
   }
 
-  setPerveivedPotential(workerId: number, potential: number) {
-    this.perveivedPotentials.set(workerId, potential);
+  setPerceivedPotential(workerId: number, potential: number) {
+    this.perceivedPotentials.set(workerId, potential);
   }
 }

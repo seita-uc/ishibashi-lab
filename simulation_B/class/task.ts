@@ -6,12 +6,9 @@ export default class Task {
   manager: Worker;
   assignedWorkers: Worker[] = [];
 
-  constructor(id: number, manager: Worker) {
+  constructor(id: number, manager: Worker, threshold: number) {
     this.id = id;
     this.manager = manager;
-  }
-
-  setThresholdToBeCompleted(threshold: number) {
     this.thresholdToBeCompleted = threshold;
   }
 
@@ -26,7 +23,7 @@ export default class Task {
         if (worker.id === w.id) {
           continue;
         }
-        worker.setPerveivedPotential(w.id, w.potential);
+        worker.setPerceivedPotential(w.id, w.potential);
       }
     }
   }

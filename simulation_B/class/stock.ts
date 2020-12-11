@@ -14,8 +14,19 @@ export default class Stock {
     this.latestPrice = price;
   }
 
-  //transfer(from: number, to: number, amount: number) {
-  //this.owners.set(-1, this.totalIssued);
-  //this.owners.set(-1, this.totalIssued);
-  //}
+  transfer(from: number, to: number, amount: number) {
+    if (!this.owners.has(from)) {
+      throw "from user does not have any balance";
+    }
+    let fromBalance: number = this.owners.get(from);
+    if (fromBalance < amount) {
+      throw "from user balance is not enough to transfer";
+    }
+    let toBalance: number = 0;
+    if (this.owners.has(to)) {
+      toBalance = this.owners.get(to);
+    }
+    this.owners.set(from, fromBalance - amount);
+    this.owners.set(to, toBalance + amount);
+  }
 }
