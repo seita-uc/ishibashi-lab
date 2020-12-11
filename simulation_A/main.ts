@@ -5,7 +5,7 @@ import Manager from "./class/manager";
 import Task from "./class/task";
 
 // 試行回数
-const tryNum: number = 10000;
+const tryNum: number = 100;
 const workerNum: number = 10;
 const taskNum: number = 3;
 
@@ -21,6 +21,7 @@ for (let i = 0; i < workerNum; i++) {
 const manager: Manager = new Manager(100);
 const evaluator: Evaluator = new Evaluator(99);
 
+const overallSuccessRates = [];
 for (let i = 0; i < tryNum; i++) {
   const totalReputation: number = workers
     .map((w: Worker) => w.reputation)
@@ -40,14 +41,20 @@ for (let i = 0; i < tryNum; i++) {
   for (const task of tasks) {
     // workersのpotentialの中央値*taskの人数が成功の閾値
     // TODO 成功の閾値によって成功率が変化してしまうため、どのように閾値を算出するかちゃんと考える必要がある
-
-    console.log(task);
-    evaluator.evaluate(task);
     if (!task.isCompleted()) {
+      console.log(task);
     }
+    evaluator.evaluate(task);
   }
   const successfulTasks: Task[] = tasks.filter((t: Task) => t.isCompleted());
-  const successRate: number = successfulTasks.length / tasks.length;
-  console.log(successRate * 100);
+  const successRate: number = (successfulTasks.length / tasks.length) * 100;
+  console.log(successRate);
+
+  overallSuccessRates.push(successRate);
 }
 console.log(workers);
+
+const overallSuccessRate: number =
+  overallSuccessRates.reduce((r, sum) => sum + r) / overallSuccessRates.length;
+// 全タスクの成功率の平均
+console.log(overallSuccessRate);

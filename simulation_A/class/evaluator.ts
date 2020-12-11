@@ -13,9 +13,7 @@ export default class Evaluator extends Worker {
         worker.reputation += 1;
         continue;
       }
-
       worker.reputation -= 1;
-
       if (worker.reputation < 0) {
         worker.reputation = 0;
       }

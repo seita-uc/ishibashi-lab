@@ -12,10 +12,6 @@ export default class Task {
     this.thresholdToBeCompleted = threshold;
   }
 
-  //setThresholdToBeCompleted(threshold: number) {
-  //this.thresholdToBeCompleted = threshold;
-  //}
-
   assignWorker(worker: Worker) {
     this.assignedWorkers.push(worker);
   }
@@ -28,7 +24,7 @@ export default class Task {
       (w: Worker) => w.potential
     );
     const sum: number = potentials.reduce((sum: number, p: number) => sum + p);
-    return sum > this.thresholdToBeCompleted;
+    return sum >= this.thresholdToBeCompleted;
   }
 
   getReputationSum(): number {

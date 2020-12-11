@@ -9,5 +9,6 @@ export default class Worker {
     this.id = id;
     this.potential = potential;
     this.reputation = getRandomInt(10, 100);
+    //this.reputation = potential;
   }
 }
