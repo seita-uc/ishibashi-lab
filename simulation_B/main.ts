@@ -6,34 +6,60 @@ import Market from "./class/market";
 import Stock from "./class/stock";
 import Order from "./class/order";
 
+//
 // 試行回数
-const tryNum: number = 10;
+//
+const tryNum: number = 1;
 const workerNum: number = 10;
 const taskNum: number = 2;
 
+//
 // workerの生成
+//
 const workers: Worker[] = [];
 for (let i = 0; i < workerNum; i++) {
   const w: Worker = new Worker(i, i * 10 + 10);
   workers.push(w);
 }
 
+//
+// workerのppのランダム生成
+//
+workers.forEach((w) => w.initializePerceivedPotentials(workers));
+
+//
+// 変数の定義
+//
 const stocks: Stock[] = workers.map((w: Worker) => new Stock(w.id, w.value));
 const market: Market = new Market(stocks);
 const manager: Manager = new Manager(workerNum + 1);
+const overallSuccessRates = [];
+
+//
+// 初期の株配分
+//
+const totalIssueNum = 100;
+const portionNum = totalIssueNum / workerNum;
+
+// TODO 初期の株配分を実装
+for (const stock of stocks) {
+  for (let i = 0; i < workerNum; i++) {
+    const randIndex = getRandomInt(0, workerNum - 1);
+    const worker = workers[randIndex];
+    stock.issue(worker.id, portionNum);
+  }
+}
 
 market.start();
 
-const overallSuccessRates = [];
 for (let i = 0; i < tryNum; i++) {
   const totalValue: number = workers
     .map((w: Worker) => w.value)
     .reduce((v: number, sum: number) => sum + v);
+
   const tasks: Task[] = [];
   for (let v = 0; v < taskNum; v++) {
-    // TODO taskのreputationの閾値をどう設定するか
-    // どのように計算するのが妥当か
-    // TODO reputationの合計値をtaskの総数で割った数が最大値の乱数にした理由をまとめる
+    // TODO valueの合計値をtaskの総数で割った数が最大値の乱数にした理由をまとめる
     const threshold: number = getRandomInt(10, totalValue / taskNum);
     const task: Task = new Task(v, manager, threshold);
     tasks.push(task);
@@ -48,7 +74,6 @@ for (let i = 0; i < tryNum; i++) {
 
   const successfulTasks: Task[] = tasks.filter((t: Task) => t.isCompleted());
   const successRate: number = (successfulTasks.length / tasks.length) * 100;
-  console.log(successRate);
   overallSuccessRates.push(successRate);
 
   for (const w of workers) {
@@ -64,20 +89,22 @@ for (let i = 0; i < tryNum; i++) {
           stock.id,
           w.id,
           "ask",
-          stock.latestPrice
+          stock.latestPrice,
+          10 // TODO 買えるだけかう
         );
         market.setOrder(order);
         continue;
       }
 
       // 持っていないと売れない
-      if (stock.latestPrice > perceivedPotential) {
+      if (stock.latestPrice > perceivedPotential && stock.balanceOf(w.id) > 0) {
         // TODO 売り注文を出す
         const order: Order = new Order(
           stock.id,
           w.id,
           "bid",
-          stock.latestPrice - 1
+          stock.latestPrice,
+          stock.balanceOf(w.id) // 全部売る
         );
         market.setOrder(order);
         continue;
@@ -94,7 +121,6 @@ for (let i = 0; i < tryNum; i++) {
 // 買える分だけ買う？
 // coinの概念をどうするか
 
-//console.log(market);
 const overallSuccessRate: number =
   overallSuccessRates.reduce((r, sum) => sum + r) / overallSuccessRates.length;
 // 全タスクの成功率の平均

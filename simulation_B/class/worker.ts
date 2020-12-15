@@ -16,4 +16,14 @@ export default class Worker {
   setPerceivedPotential(workerId: number, potential: number) {
     this.perceivedPotentials.set(workerId, potential);
   }
+
+  initializePerceivedPotentials(workers: Worker[]) {
+    for (const w of workers) {
+      if (this.id == w.id) {
+        continue;
+      }
+      const pp = getRandomInt(10, 100);
+      this.setPerceivedPotential(w.id, pp);
+    }
+  }
 }

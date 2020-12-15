@@ -1,6 +1,6 @@
 export default class Stock {
   id: number;
-  totalIssued: number = 1000;
+  totalIssued: number = 0;
   latestPrice: number = 0;
   owners: Map<number, number> = new Map<number, number>();
 
@@ -8,12 +8,26 @@ export default class Stock {
     this.id = id;
     // reputationと同様、乱数でpriceを決める
     this.latestPrice = latestPrice;
-    // id: -1に全て発行
-    this.owners.set(-1, this.totalIssued);
   }
 
   setLatestPrice(price: number) {
     this.latestPrice = price;
+  }
+
+  issue(to: number, amount: number) {
+    let totalAmount = amount;
+    if (this.owners.has(to)) {
+      totalAmount += this.owners.get(to);
+    }
+    this.owners.set(to, totalAmount);
+    this.totalIssued += amount;
+  }
+
+  balanceOf(owner: number): number {
+    if (!this.owners.has(owner)) {
+      return 0;
+    }
+    return this.owners.get(owner);
   }
 
   transfer(from: number, to: number, amount: number) {

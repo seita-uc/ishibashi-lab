@@ -6,7 +6,7 @@ import Stock from "./stock";
 
 const EventType = {
   OrderCreate: "order.create",
-  OrderComplete: "order.complete",
+  OrderAgreed: "order.agreed",
   OrderCancel: "order.cancel",
 };
 
@@ -26,17 +26,44 @@ export default class Market {
   // 非同期で板を動かす
   async start() {
     // 板を参照して約定できる取引がないか確認する
+    // TODO 約定のアルゴリズム書く
     this.event.on(EventType.OrderCreate, (o: Order) => {
       const orders: Order[] = this.orders.get(o.stockId);
       orders.push(o);
       this.orders.set(o.stockId, orders);
-      console.log("order:", o.type);
+      //console.log("order:", o.type);
+
+      for (const stockId of this.orders.keys()) {
+        const orders: Order[] = this.orders.get(stockId);
+        const bids: Order[] = orders
+          .filter((o) => o.type == "bid")
+          .sort((a: Order, b: Order) => (a.createdAt > b.createdAt ? 1 : -1));
+        const asks = orders
+          .filter((o) => o.type == "ask")
+          .sort((a: Order, b: Order) => (a.createdAt > b.createdAt ? 1 : -1));
+
+        bids.forEach((bid) => {
+          asks.forEach((ask) => {
+            if (bid.price == ask.price) {
+            }
+          });
+        });
+        //console.log(bids);
+        //console.log(asks);
+        //for (const order of orders) {
+        //// TODO bidとaskをcreatedAtでsortする
+        //// TODO priceが一致しているものを約定していく
+        //}
+      }
     });
 
-    this.event.on(EventType.OrderComplete, (o: Order) => {
-      const stock: Stock = this.stocks.get(o.stockId);
-      stock.setLatestPrice(o.price);
-      this.deleteOrder(o);
+    this.event.on(EventType.OrderAgreed, (bid: Order, ask: Order) => {
+      const stock: Stock = this.stocks.get(bid.stockId);
+      // TODO 任意の数量の株をtransferできるようにする
+      stock.transfer(bid.userId, ask.userId, ask.amount);
+      stock.setLatestPrice(bid.price);
+      this.deleteOrder(bid);
+      this.deleteOrder(ask);
     });
 
     this.event.on(EventType.OrderCancel, (o: Order) => {
@@ -59,7 +86,7 @@ export default class Market {
     this.event.emit(EventType.OrderCancel, order);
   }
 
-  completeOrder(order: Order) {
-    this.event.emit(EventType.OrderComplete, order);
+  agreeOrders(bid: Order, ask: Order) {
+    this.event.emit(EventType.OrderAgreed, bid, ask);
   }
 }
