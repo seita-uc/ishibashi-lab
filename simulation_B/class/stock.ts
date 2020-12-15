@@ -1,13 +1,15 @@
+import { getRandomInt } from "../util/util";
+
 export default class Stock {
   id: number;
   totalIssued: number = 0;
   latestPrice: number = 0;
   owners: Map<number, number> = new Map<number, number>();
 
-  constructor(id: number, latestPrice: number) {
+  constructor(id: number) {
     this.id = id;
     // reputationと同様、乱数でpriceを決める
-    this.latestPrice = latestPrice;
+    this.latestPrice = getRandomInt(10, 100);
   }
 
   setLatestPrice(price: number) {

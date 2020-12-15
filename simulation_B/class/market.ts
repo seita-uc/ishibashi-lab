@@ -31,7 +31,6 @@ export default class Market {
       const orders: Order[] = this.orders.get(o.stockId);
       orders.push(o);
       this.orders.set(o.stockId, orders);
-      //console.log("order:", o.type);
 
       for (const stockId of this.orders.keys()) {
         const orders: Order[] = this.orders.get(stockId);
@@ -42,14 +41,18 @@ export default class Market {
           .filter((o) => o.type == "ask")
           .sort((a: Order, b: Order) => (a.createdAt > b.createdAt ? 1 : -1));
 
-        bids.forEach((bid) => {
-          asks.forEach((ask) => {
-            if (bid.price == ask.price) {
+        for (const bid of bids) {
+          let agreed = false;
+          for (const ask of asks) {
+            if (bid.price == ask.price && !agreed) {
+              //if (!agreed) {
+              this.agreeOrders(bid, ask);
+              agreed = true;
+              continue;
             }
-          });
-        });
-        //console.log(bids);
-        //console.log(asks);
+          }
+        }
+
         //for (const order of orders) {
         //// TODO bidとaskをcreatedAtでsortする
         //// TODO priceが一致しているものを約定していく
@@ -61,7 +64,9 @@ export default class Market {
       const stock: Stock = this.stocks.get(bid.stockId);
       // TODO 任意の数量の株をtransferできるようにする
       stock.transfer(bid.userId, ask.userId, ask.amount);
-      stock.setLatestPrice(bid.price);
+      stock.setLatestPrice(ask.price);
+      //stock.setLatestPrice(bid.price);
+      console.log(`set price ${stock.id}: ${stock.latestPrice}`);
       this.deleteOrder(bid);
       this.deleteOrder(ask);
     });
@@ -72,6 +77,20 @@ export default class Market {
   }
 
   setOrder(order: Order) {
+    const orders = this.orders.get(order.stockId);
+    const index: number = orders.findIndex(
+      (o) =>
+        o.price == order.price &&
+        o.stockId == order.stockId &&
+        o.userId == order.userId &&
+        o.amount == order.amount &&
+        o.type == order.type &&
+        o.createdAt <= order.createdAt
+    );
+    if (index != -1) {
+      // すでに同様のorderが存在する場合は上書きする
+      this.deleteOrder(orders[index]);
+    }
     this.event.emit(EventType.OrderCreate, order);
   }
 

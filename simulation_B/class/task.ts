@@ -1,4 +1,5 @@
 import Worker from "./worker";
+import Market from "./market";
 
 export default class Task {
   id: number;
@@ -36,10 +37,11 @@ export default class Task {
     return sum > this.thresholdToBeCompleted;
   }
 
-  getValueSum(): number {
+  getValueSum(market: Market): number {
     let sum: number = 0;
     for (const w of this.assignedWorkers) {
-      sum += w.value;
+      const stock = market.stocks.get(w.id);
+      sum += stock.latestPrice;
     }
     return sum;
   }
