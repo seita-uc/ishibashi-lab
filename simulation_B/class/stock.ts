@@ -4,8 +4,10 @@ export default class Stock {
   latestPrice: number = 0;
   owners: Map<number, number> = new Map<number, number>();
 
-  constructor(id: number) {
+  constructor(id: number, latestPrice: number) {
     this.id = id;
+    // reputationと同様、乱数でpriceを決める
+    this.latestPrice = latestPrice;
     // id: -1に全て発行
     this.owners.set(-1, this.totalIssued);
   }

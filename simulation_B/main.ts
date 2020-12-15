@@ -1,5 +1,3 @@
-import * as math from "mathjs";
-
 import { getRandomInt } from "./util/util";
 import Worker from "./class/worker";
 import Manager from "./class/manager";
@@ -20,9 +18,11 @@ for (let i = 0; i < workerNum; i++) {
   workers.push(w);
 }
 
-const stocks: Stock[] = workers.map((w: Worker) => new Stock(w.id));
+const stocks: Stock[] = workers.map((w: Worker) => new Stock(w.id, w.value));
 const market: Market = new Market(stocks);
 const manager: Manager = new Manager(workerNum + 1);
+
+market.start();
 
 const overallSuccessRates = [];
 for (let i = 0; i < tryNum; i++) {
@@ -56,25 +56,45 @@ for (let i = 0; i < tryNum; i++) {
       const workerId: number = entry[0];
       const perceivedPotential: number = entry[1];
       const stock: Stock = market.stocks.get(workerId);
+
       if (stock.latestPrice < perceivedPotential) {
-        console.log("buy: ", stock);
+        // TODO 値動きを表現する
         // TODO 買い注文を出す
-        const order: Order = new Order(stock.id, "ask", stock.latestPrice);
+        const order: Order = new Order(
+          stock.id,
+          w.id,
+          "ask",
+          stock.latestPrice
+        );
         market.setOrder(order);
         continue;
       }
+
+      // 持っていないと売れない
       if (stock.latestPrice > perceivedPotential) {
-        console.log("sell: ", stock);
         // TODO 売り注文を出す
-        const order: Order = new Order(stock.id, "bid", stock.latestPrice);
+        const order: Order = new Order(
+          stock.id,
+          w.id,
+          "bid",
+          stock.latestPrice - 1
+        );
         market.setOrder(order);
         continue;
       }
     }
   }
+
+  console.log(market.orders);
 }
 
-console.log(market);
+// このままだとorderがなくならず増えるだけ
+// 売り注文と買い注文をどのようにマッチさせるのか
+// 最初は注文した分だけ買える
+// 買える分だけ買う？
+// coinの概念をどうするか
+
+//console.log(market);
 const overallSuccessRate: number =
   overallSuccessRates.reduce((r, sum) => sum + r) / overallSuccessRates.length;
 // 全タスクの成功率の平均

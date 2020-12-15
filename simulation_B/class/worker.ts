@@ -10,7 +10,7 @@ export default class Worker {
   constructor(id: number, potential: number) {
     this.id = id;
     this.potential = potential;
-    this.value = getRandomInt(100);
+    this.value = getRandomInt(10, 100);
   }
 
   setPerceivedPotential(workerId: number, potential: number) {
