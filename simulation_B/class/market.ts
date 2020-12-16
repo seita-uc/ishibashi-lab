@@ -26,7 +26,6 @@ export default class Market {
   // 非同期で板を動かす
   async start() {
     // 板を参照して約定できる取引がないか確認する
-    // TODO 約定のアルゴリズム書く
     this.event.on(EventType.OrderCreate, (o: Order) => {
       const orders: Order[] = this.orders.get(o.stockId);
       orders.push(o);
@@ -45,7 +44,6 @@ export default class Market {
           let agreed = false;
           for (const ask of asks) {
             if (bid.price == ask.price && !agreed) {
-              //if (!agreed) {
               this.agreeOrders(bid, ask);
               agreed = true;
               continue;
@@ -65,7 +63,6 @@ export default class Market {
       // TODO 任意の数量の株をtransferできるようにする
       stock.transfer(bid.userId, ask.userId, ask.amount);
       stock.setLatestPrice(ask.price);
-      //stock.setLatestPrice(bid.price);
       console.log(`set price ${stock.id}: ${stock.latestPrice}`);
       this.deleteOrder(bid);
       this.deleteOrder(ask);

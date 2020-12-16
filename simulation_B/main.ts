@@ -128,7 +128,7 @@ try {
             w.id,
             "bid",
             stock.latestPrice - 1,
-            1 // TODO 買えるだけかう
+            1 // TODO 売れるだけ売る
           );
 
           const index = orders
@@ -140,7 +140,7 @@ try {
               w.id,
               "bid",
               orders[index].price,
-              1 // TODO 買えるだけかう
+              1 // TODO 売れるだけ売る
             );
           }
           market.setOrder(order);
