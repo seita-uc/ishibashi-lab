@@ -7,7 +7,7 @@ import Task from "./class/task";
 // 試行回数
 const tryNum: number = 100;
 const workerNum: number = 10;
-const taskNum: number = 3;
+const taskNum: number = 5;
 
 // workerの生成
 const workers: Worker[] = [];
@@ -23,15 +23,13 @@ const evaluator: Evaluator = new Evaluator(99);
 
 const overallSuccessRates = [];
 for (let i = 0; i < tryNum; i++) {
-  const totalReputation: number = workers
-    .map((w: Worker) => w.reputation)
+  const totalPotential: number = workers
+    .map((w: Worker) => w.potential)
     .reduce((r: number, sum: number) => sum + r);
   const tasks: Task[] = [];
   for (let v = 0; v < taskNum; v++) {
-    // TODO taskのreputationの閾値をどう設定するか
-    // どのように計算するのが妥当か
     // TODO reputationの合計値をtaskの総数で割った数が最大値の乱数にした理由をまとめる
-    const threshold: number = getRandomInt(10, totalReputation / taskNum);
+    const threshold: number = getRandomInt(10, totalPotential / taskNum);
     const task: Task = new Task(v, manager, threshold);
     tasks.push(task);
   }
@@ -39,8 +37,6 @@ for (let i = 0; i < tryNum; i++) {
   manager.assignWorkersToTasks(workers, tasks);
 
   for (const task of tasks) {
-    // workersのpotentialの中央値*taskの人数が成功の閾値
-    // TODO 成功の閾値によって成功率が変化してしまうため、どのように閾値を算出するかちゃんと考える必要がある
     if (!task.isCompleted()) {
       console.log(task);
     }

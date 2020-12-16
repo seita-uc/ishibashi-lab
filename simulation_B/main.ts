@@ -9,16 +9,16 @@ import Order from "./class/order";
 //
 // 試行回数
 //
-const tryNum: number = 10000;
+const tryNum: number = 1000;
 const workerNum: number = 5;
-const taskNum: number = 3;
+const taskNum: number = 1;
 
 //
 // workerの生成
 //
 const workers: Worker[] = [];
 for (let i = 0; i < workerNum; i++) {
-  const w: Worker = new Worker(i, i * 10 + 10);
+  const w: Worker = new Worker(i);
   workers.push(w);
 }
 
@@ -38,14 +38,15 @@ const overallSuccessRates = [];
 //
 // 初期の株配分
 //
-const totalIssueNum = 1000;
+const totalIssueNum = 100;
 const portionNum = totalIssueNum / workerNum;
 
 // TODO 初期の株配分を実装
 for (const stock of stocks) {
   for (let i = 0; i < workerNum; i++) {
-    const randIndex = getRandomInt(0, workerNum - 1);
-    const worker = workers[randIndex];
+    //const randIndex = getRandomInt(0, workerNum - 1);
+    //const worker = workers[randIndex];
+    const worker = workers[i];
     stock.issue(worker.id, portionNum);
   }
 }
@@ -54,14 +55,13 @@ try {
   market.start();
 
   for (let i = 0; i < tryNum; i++) {
-    const totalPrice: number = stocks
-      .map((s: Stock) => s.latestPrice)
-      .reduce((v: number, sum: number) => sum + v);
-
+    // TODO marketからstockを取得するようにする
+    const totalPotential: number = workers
+      .map((w: Worker) => w.potential)
+      .reduce((r: number, sum: number) => sum + r);
     const tasks: Task[] = [];
     for (let v = 0; v < taskNum; v++) {
-      // TODO valueの合計値をtaskの総数で割った数が最大値の乱数にした理由をまとめる
-      const threshold: number = getRandomInt(10, totalPrice / taskNum);
+      const threshold: number = getRandomInt(10, totalPotential / taskNum);
       const task: Task = new Task(v, manager, threshold);
       tasks.push(task);
     }

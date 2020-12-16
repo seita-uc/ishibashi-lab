@@ -6,9 +6,9 @@ export default class Worker {
   perceivedPotentials: Map<number, number> = new Map<number, number>();
 
   // TODO coinの概念を導入する
-  constructor(id: number, potential: number) {
+  constructor(id: number) {
     this.id = id;
-    this.potential = potential;
+    this.potential = getRandomInt(10, 100);
   }
 
   setPerceivedPotential(workerId: number, potential: number) {
@@ -20,7 +20,7 @@ export default class Worker {
       if (this.id == w.id) {
         continue;
       }
-      const pp = getRandomInt(10, 100);
+      const pp = getRandomInt(1, 100);
       this.setPerceivedPotential(w.id, pp);
     }
   }

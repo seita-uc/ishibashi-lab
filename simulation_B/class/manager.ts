@@ -4,7 +4,7 @@ import Task from "./task";
 
 export default class Manager extends Worker {
   constructor(id: number) {
-    super(id, 100);
+    super(id);
   }
 
   // valueの閾値に満たすまで割り振る

@@ -30,6 +30,9 @@ export default class Task {
   }
 
   isCompleted(): boolean {
+    if (this.assignedWorkers.length == 0) {
+      return false;
+    }
     const potentials: number[] = this.assignedWorkers.map(
       (w: Worker) => w.potential
     );
