@@ -1,3 +1,4 @@
+import { getRandomInt } from "../util/util";
 import Worker from "./worker";
 import Market from "./market";
 
@@ -24,7 +25,12 @@ export default class Task {
         if (worker.id === w.id) {
           continue;
         }
-        worker.setPerceivedPotential(w.id, w.potential);
+        // TODO potentialの近似値を持つ
+        //worker.setPerceivedPotential(w.id, w.potential);
+        worker.setPerceivedPotential(
+          w.id,
+          getRandomInt(w.potential - 5, w.potential + 5)
+        );
       }
     }
   }

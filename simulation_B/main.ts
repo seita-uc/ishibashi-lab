@@ -9,7 +9,7 @@ import Order from "./class/order";
 //
 // 試行回数
 //
-const tryNum: number = 1000;
+const tryNum: number = 10000;
 const workerNum: number = 5;
 const taskNum: number = 1;
 
