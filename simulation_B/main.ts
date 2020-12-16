@@ -155,12 +155,6 @@ try {
   console.error(e);
 }
 
-// このままだとorderがなくならず増えるだけ
-// 売り注文と買い注文をどのようにマッチさせるのか
-// 最初は注文した分だけ買える
-// 買える分だけ買う？
-// coinの概念をどうするか
-
 const overallSuccessRate: number =
   overallSuccessRates.reduce((r, sum) => sum + r) / overallSuccessRates.length;
 // 全タスクの成功率の平均
