@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import { InsufficientBalanceError, NoBalanceError } from "./error";
 import Order from "./order";
 import Stock from "./stock";
 
@@ -23,42 +24,44 @@ export default class Market {
     this.event = new EventEmitter();
   }
 
+  findDuplicatedOrderIndex(order: Order, orders: Order[]): number {
+    const index: number = orders.findIndex(
+      (o) =>
+        o.stockId == order.stockId &&
+        o.userId == order.userId &&
+        o.amount == order.amount &&
+        o.type == order.type &&
+        o.createdAt <= order.createdAt
+    );
+    return index;
+  }
+
   // 非同期で板を動かす
   async start() {
     // 板を参照して約定できる取引がないか確認する
-    this.event.on(EventType.OrderCreate, (o: Order) => {
-      const orders: Order[] = this.orders.get(o.stockId);
-      orders.push(o);
-      this.orders.set(o.stockId, orders);
-
-      for (const stockId of this.orders.keys()) {
-        const orders: Order[] = this.orders.get(stockId);
-        const bids: Order[] = orders
-          .filter((o) => o.type == "bid")
-          .sort((a: Order, b: Order) => (a.createdAt > b.createdAt ? 1 : -1));
-        const asks = orders
-          .filter((o) => o.type == "ask")
-          .sort((a: Order, b: Order) => (a.createdAt > b.createdAt ? 1 : -1));
-
-        for (const bid of bids) {
-          let agreed = false;
-          for (const ask of asks) {
-            if (bid.price == ask.price && !agreed) {
-              this.agreeOrders(bid, ask);
-              agreed = true;
-              continue;
-            }
-          }
-        }
-
-        //for (const order of orders) {
-        //// TODO bidとaskをcreatedAtでsortする
-        //// TODO priceが一致しているものを約定していく
-        //}
-      }
+    this.event.on(EventType.OrderCreate, this.onOrderCreated);
+    this.event.on(EventType.OrderAgreed, this.onOrderAgreed);
+    this.event.on(EventType.OrderCancel, (o: Order) => {
+      this.deleteOrder(o);
     });
+  }
 
-    this.event.on(EventType.OrderAgreed, (bid: Order, ask: Order) => {
+  onOrderCreated = async (o: Order) => {
+    let orders: Order[] = this.orders.get(o.stockId);
+    const index: number = this.findDuplicatedOrderIndex(o, orders);
+    if (index != -1) {
+      // すでに同様のorderが存在する場合は上書きする
+      orders = this.deleteOrder(orders[index]);
+    }
+    orders.push(o);
+    this.orders.set(o.stockId, orders);
+
+    // 作成されたorderに関してのみagreeさせれば良い
+    this.agreeOrderIfConditionMatched(o);
+  };
+
+  onOrderAgreed = (bid: Order, ask: Order) => {
+    try {
       const stock: Stock = this.stocks.get(bid.stockId);
       // TODO 任意の数量の株をtransferできるようにする
       stock.transfer(bid.userId, ask.userId, ask.amount);
@@ -66,36 +69,31 @@ export default class Market {
       console.log(`set price ${stock.id}: ${stock.latestPrice}`);
       this.deleteOrder(bid);
       this.deleteOrder(ask);
-    });
-
-    this.event.on(EventType.OrderCancel, (o: Order) => {
-      this.deleteOrder(o);
-    });
-  }
+    } catch (e) {
+      if (e.message == InsufficientBalanceError.message) {
+        console.error(e.message);
+        this.deleteOrder(bid);
+        return;
+      }
+      if (e.message == NoBalanceError.message) {
+        console.error(e.message);
+        this.deleteOrder(bid);
+        return;
+      }
+      console.error(e);
+    }
+  };
 
   setOrder(order: Order) {
-    const orders = this.orders.get(order.stockId);
-    const index: number = orders.findIndex(
-      (o) =>
-        o.price == order.price &&
-        o.stockId == order.stockId &&
-        o.userId == order.userId &&
-        o.amount == order.amount &&
-        o.type == order.type &&
-        o.createdAt <= order.createdAt
-    );
-    if (index != -1) {
-      // すでに同様のorderが存在する場合は上書きする
-      this.deleteOrder(orders[index]);
-    }
     this.event.emit(EventType.OrderCreate, order);
   }
 
-  deleteOrder(order: Order) {
+  deleteOrder(order: Order): Order[] {
     const orders = this.orders
       .get(order.stockId)
       .filter((o: Order) => o.orderId != order.orderId);
     this.orders.set(order.stockId, orders);
+    return orders;
   }
 
   cancelOrder(order: Order) {
@@ -104,5 +102,23 @@ export default class Market {
 
   agreeOrders(bid: Order, ask: Order) {
     this.event.emit(EventType.OrderAgreed, bid, ask);
+  }
+
+  agreeOrderIfConditionMatched(o: Order) {
+    const matchingOrders: Order[] = this.orders
+      .get(o.stockId)
+      .filter((mo: Order) => mo.type != o.type)
+      .sort((a: Order, b: Order) => (a.createdAt > b.createdAt ? 1 : -1));
+
+    const index: number = matchingOrders.findIndex(
+      (mo: Order) => o.price == mo.price
+    );
+    if (index == -1) {
+      return;
+    }
+    const mo: Order = matchingOrders[index];
+    const bid: Order = o.type == "bid" ? o : mo;
+    const ask: Order = o.type == "bid" ? mo : o;
+    this.agreeOrders(bid, ask);
   }
 }

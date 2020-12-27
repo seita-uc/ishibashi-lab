@@ -1,4 +1,5 @@
 import { getRandomInt } from "../util/util";
+import { InsufficientBalanceError, NoBalanceError } from "./error";
 
 export default class Stock {
   id: number;
@@ -34,11 +35,11 @@ export default class Stock {
 
   transfer(from: number, to: number, amount: number) {
     if (!this.owners.has(from)) {
-      throw "from user does not have any balance";
+      throw NoBalanceError;
     }
     let fromBalance: number = this.owners.get(from);
     if (fromBalance < amount) {
-      throw "from user balance is not enough to transfer";
+      throw InsufficientBalanceError;
     }
     let toBalance: number = 0;
     if (this.owners.has(to)) {
