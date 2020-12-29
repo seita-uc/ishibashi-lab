@@ -1,4 +1,8 @@
-export const InsufficientBalanceError = new Error(
-  "insufficient balance to transfer"
+export const InsufficientStockBalanceError = new Error(
+  "insufficient stock balance to transfer"
 );
-export const NoBalanceError = new Error("user has no balance");
+export const NoStockBalanceError = new Error("user has no stock balance");
+export const InsufficientCoinBalanceError = new Error(
+  "insufficient coin balance to transfer"
+);
+export const NoCoinBalanceError = new Error("user has no coin balance");

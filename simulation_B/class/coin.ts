@@ -1,21 +1,10 @@
-import { getRandomInt } from "../util/util";
-import { InsufficientStockBalanceError, NoStockBalanceError } from "./error";
+import { InsufficientCoinBalanceError, NoCoinBalanceError } from "./error";
 
-export default class Stock {
-  id: number;
+export default class Coin {
   totalIssued: number = 0;
-  latestPrice: number = 0;
   owners: Map<number, number> = new Map<number, number>();
 
-  constructor(id: number) {
-    this.id = id;
-    // reputationと同様、乱数でpriceを決める
-    this.latestPrice = getRandomInt(1, 100);
-  }
-
-  setLatestPrice(price: number) {
-    this.latestPrice = price;
-  }
+  constructor() {}
 
   issue(to: number, amount: number) {
     let totalAmount = amount;
@@ -35,11 +24,11 @@ export default class Stock {
 
   transfer(from: number, to: number, amount: number) {
     if (!this.owners.has(from)) {
-      throw NoStockBalanceError;
+      throw NoCoinBalanceError;
     }
     let fromBalance: number = this.owners.get(from);
     if (fromBalance < amount) {
-      throw InsufficientStockBalanceError;
+      throw InsufficientCoinBalanceError;
     }
     let toBalance: number = 0;
     if (this.owners.has(to)) {

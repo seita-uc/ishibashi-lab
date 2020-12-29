@@ -1,7 +1,14 @@
 import { EventEmitter } from "events";
-import { InsufficientBalanceError, NoBalanceError } from "./error";
+import {
+  InsufficientStockBalanceError,
+  NoStockBalanceError,
+  InsufficientCoinBalanceError,
+  NoCoinBalanceError,
+} from "./error";
+import { logger } from "../util/util";
 import Order from "./order";
 import Stock from "./stock";
+import Coin from "./coin";
 
 // OrderBook classをつくる？
 
@@ -14,13 +21,15 @@ const EventType = {
 export default class Market {
   orders: Map<number, Order[]> = new Map<number, Order[]>();
   stocks: Map<number, Stock> = new Map<number, Stock>();
+  coin: Coin;
   event: EventEmitter;
 
-  constructor(stocks: Stock[]) {
+  constructor(stocks: Stock[], coin: Coin) {
     for (const s of stocks) {
       this.stocks.set(s.id, s);
       this.orders.set(s.id, []);
     }
+    this.coin = coin;
     this.event = new EventEmitter();
   }
 
@@ -37,7 +46,7 @@ export default class Market {
   }
 
   // 非同期で板を動かす
-  async start() {
+  start() {
     // 板を参照して約定できる取引がないか確認する
     this.event.on(EventType.OrderCreate, this.onOrderCreated);
     this.event.on(EventType.OrderAgreed, this.onOrderAgreed);
@@ -64,23 +73,24 @@ export default class Market {
     try {
       const stock: Stock = this.stocks.get(bid.stockId);
       // TODO 任意の数量の株をtransferできるようにする
+      // TODO coinのtransferも実装する
+      const transferCoinAmount: number = bid.amount * bid.price;
+      this.coin.transfer(ask.userId, bid.userId, transferCoinAmount);
       stock.transfer(bid.userId, ask.userId, ask.amount);
       stock.setLatestPrice(ask.price);
-      console.log(`set price ${stock.id}: ${stock.latestPrice}`);
+      logger.debug(`set price ${stock.id}: ${stock.latestPrice}`);
       this.deleteOrder(bid);
       this.deleteOrder(ask);
     } catch (e) {
-      if (e.message == InsufficientBalanceError.message) {
-        console.error(e.message);
+      if (
+        e.message == InsufficientStockBalanceError.message ||
+        e.message == NoStockBalanceError.message
+      ) {
+        logger.error(e.message);
         this.deleteOrder(bid);
         return;
       }
-      if (e.message == NoBalanceError.message) {
-        console.error(e.message);
-        this.deleteOrder(bid);
-        return;
-      }
-      console.error(e);
+      logger.error(e.message);
     }
   };
 

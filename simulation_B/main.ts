@@ -1,23 +1,34 @@
-import { getRandomInt } from "./util/util";
+import { getRandomInt, logger } from "./util/util";
 import Worker from "./class/worker";
 import Manager from "./class/manager";
 import Task from "./class/task";
 import Market from "./class/market";
 import Stock from "./class/stock";
+import Coin from "./class/coin";
+
+//
+// ログレベルの設定
+//
+//logger.level = "info";
+logger.level = "debug";
 
 //
 // 試行回数
 //
-const tryNum: number = 1000;
+const tryNum: number = 100;
 const workerNum: number = 100;
 const taskNum: number = 10;
 
 //
 // workerの生成
+// coinの発行
 //
+const coin: Coin = new Coin();
 const workers: Worker[] = [];
 for (let i = 0; i < workerNum; i++) {
   const w: Worker = new Worker(i);
+  // TODO 仮で1000coin発行
+  coin.issue(w.id, 1000);
   workers.push(w);
 }
 
@@ -31,7 +42,7 @@ workers.forEach((w) => w.initializePerceivedPotentials(workers));
 // 変数の定義
 //
 const stocks: Stock[] = workers.map((w: Worker) => new Stock(w.id));
-const market: Market = new Market(stocks);
+const market: Market = new Market(stocks, coin);
 const manager: Manager = new Manager(workerNum + 1);
 const overallSuccessRates = [];
 
@@ -60,8 +71,7 @@ for (const stock of stocks) {
       .reduce((r: number, sum: number) => sum + r);
 
     for (let i = 0; i < tryNum; i++) {
-      // TODO marketからstockを取得するようにする
-      console.log(`tryNun: ${i}`);
+      logger.debug(`tryNun: ${i}`);
       const tasks: Task[] = [];
       for (let v = 0; v < taskNum; v++) {
         const threshold: number = getRandomInt(10, totalPotential / taskNum);
@@ -69,11 +79,10 @@ for (const stock of stocks) {
         tasks.push(task);
       }
 
-      // TODO sortした結果ではなくランダムに閾値を満たすようにassignする
       manager.assignWorkersToTasks(workers, tasks, market);
 
       for (const task of tasks) {
-        // taskが終了してworkerにpotentialがpopulateされる
+        // taskが終了してworkerにperceived potentialがpopulateされる
         task.end();
       }
 
@@ -85,31 +94,28 @@ for (const stock of stocks) {
 
       // TODO ここのfor loopを非同期かする
       const promises = [];
-
       for (const w of workers) {
         // perceived potentialを加味して必要があればorderを作成する
-        //const startTime = Date.now(); // 開始時間
         promises.push(w.reflectMarketStatus(market));
-        //const endTime = Date.now(); // 終了時間
-        //console.log(endTime - startTime);
       }
-      //const startTime = Date.now(); // 開始時間
       await Promise.all(promises);
-      //const endTime = Date.now(); // 終了時間
-      //console.log(endTime - startTime);
     }
   } catch (e) {
-    console.error(e);
+    logger.error(e);
   }
 
+  //
+  // 結果を出力する
+  //
   const overallSuccessRate: number =
     overallSuccessRates.reduce((r, sum) => sum + r) /
     overallSuccessRates.length;
   // 全タスクの成功率の平均
-  console.log(overallSuccessRate);
+  logger.info(overallSuccessRate);
 
   workers.forEach((w) => {
     const s = market.stocks.get(w.id);
-    console.log(`${w.id}: potential ${w.potential}, value ${s.latestPrice}`);
+    logger.info(`${w.id}: potential ${w.potential}, value ${s.latestPrice}`);
   });
+  logger.info(coin);
 })();
