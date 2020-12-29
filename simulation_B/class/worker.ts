@@ -74,13 +74,14 @@ export default class Worker {
 
     // TODO perceivedPotentialだけでなく、将来的にcoinを増やそうとするインセンティブをシステムに組み込まないといけない
     // TODO 正しいpotentialを知っているひとだけでなく正しくないpotentialを持っている人が参加するため、valueがpotentialに近似しない
-    if (stock.latestPrice < perceivedPotential) {
+    if (
+      stock.latestPrice < perceivedPotential &&
+      // coinを持っていないと買えない
+      coin.balanceOf(this.id) >= stock.latestPrice
+    ) {
       //
       // 買い注文
       //
-      if (coin.balanceOf(this.id) <= stock.latestPrice) {
-        return;
-      }
       const order = this.createAskOrder(
         stock,
         orders,
@@ -91,9 +92,9 @@ export default class Worker {
       return;
     }
 
-    // 持っていないと売れない
     if (
       stock.latestPrice > perceivedPotential &&
+      // stockを持っていないと売れない
       stock.balanceOf(this.id) > 0
     ) {
       //
@@ -105,42 +106,29 @@ export default class Worker {
     }
   }
 
+  getBuyableAmount(balance: number, price: number): number {
+    return Math.floor(balance / price);
+  }
+
   createAskOrder(
     stock: Stock,
     orders: Order[],
     perceivedPotential: number,
     coin: Coin
   ): Order {
-    // TODO coinの残高
     // 買える分だけ買う
-    // 一番値上がり益が大きそうな物を買う
-    // ppとlatestPriceの差が一番大きい銘柄
-    const balance = coin.balanceOf(this.id);
-    const buyableAmount = Math.floor(balance / stock.latestPrice);
-    logger.debug("balance: ", balance);
-    logger.debug("price: ", stock.latestPrice);
-    logger.debug("buyableAmount: ", buyableAmount);
-
+    let askPrice = stock.latestPrice + 1;
     const index = orders
       .sort((a, b) => (a.price < b.price ? -1 : 1))
       .findIndex((o) => o.type == "bid" && o.price < perceivedPotential);
     if (index !== -1) {
-      return new Order(
-        stock.id,
-        this.id,
-        "ask",
-        orders[index].price,
-        1 // TODO 買えるだけかう
-      );
+      askPrice = orders[index].price;
     }
-
-    return new Order(
-      stock.id,
-      this.id,
-      "ask",
-      stock.latestPrice + 1,
-      1 // TODO 買えるだけかう
+    const buyableAmount = this.getBuyableAmount(
+      coin.balanceOf(this.id),
+      askPrice
     );
+    return new Order(stock.id, this.id, "ask", askPrice, buyableAmount);
   }
 
   createBidOrder(
