@@ -10,8 +10,6 @@ import Order from "./order";
 import Stock from "./stock";
 import Coin from "./coin";
 
-// OrderBook classをつくる？
-
 const EventType = {
   OrderCreate: "order.create",
   OrderAgreed: "order.agreed",
@@ -74,13 +72,26 @@ export default class Market {
       const stock: Stock = this.stocks.get(bid.stockId);
       // TODO 任意の数量の株をtransferできるようにする
       // TODO coinのtransferも実装する
-      const transferCoinAmount: number = bid.amount * bid.price;
+
+      let stockTransferAmount: number =
+        ask.amount >= bid.amount ? bid.amount : ask.amount;
+
+      // tramsferが失敗した時に前の状態に戻す
+      const transferCoinAmount: number = stockTransferAmount * bid.price;
       this.coin.transfer(ask.userId, bid.userId, transferCoinAmount);
-      stock.transfer(bid.userId, ask.userId, ask.amount);
+      stock.transfer(bid.userId, ask.userId, stockTransferAmount);
+
+      if (ask.amount >= bid.amount) {
+        ask.amount = ask.amount - stockTransferAmount;
+        this.deleteOrder(bid);
+      }
+      if (ask.amount < bid.amount) {
+        bid.amount = bid.amount - stockTransferAmount;
+        this.deleteOrder(ask);
+      }
+
       stock.setLatestPrice(ask.price);
       logger.debug(`set price ${stock.id}: ${stock.latestPrice}`);
-      this.deleteOrder(bid);
-      this.deleteOrder(ask);
     } catch (e) {
       if (
         e.message == InsufficientStockBalanceError.message ||
@@ -88,6 +99,14 @@ export default class Market {
       ) {
         logger.error(e.message);
         this.deleteOrder(bid);
+        return;
+      }
+      if (
+        e.message == InsufficientCoinBalanceError.message ||
+        e.message == NoCoinBalanceError.message
+      ) {
+        logger.error(e.message);
+        this.deleteOrder(ask);
         return;
       }
       logger.error(e.message);
@@ -115,20 +134,33 @@ export default class Market {
   }
 
   agreeOrderIfConditionMatched(o: Order) {
-    const matchingOrders: Order[] = this.orders
-      .get(o.stockId)
-      .filter((mo: Order) => mo.type != o.type)
-      .sort((a: Order, b: Order) => (a.createdAt > b.createdAt ? 1 : -1));
+    while (true) {
+      const matchingOrders: Order[] = this.orders
+        .get(o.stockId)
+        .filter((mo: Order) => mo.type != o.type)
+        .sort((a: Order, b: Order) => (a.createdAt > b.createdAt ? 1 : -1));
 
-    const index: number = matchingOrders.findIndex(
-      (mo: Order) => o.price == mo.price
-    );
-    if (index == -1) {
-      return;
+      const index: number = matchingOrders.findIndex(
+        (mo: Order) => o.price == mo.price
+      );
+      if (index == -1) {
+        return;
+      }
+      const mo: Order = matchingOrders[index];
+      const bid: Order = o.type == "bid" ? o : mo;
+      const ask: Order = o.type == "bid" ? mo : o;
+
+      // coinの残高確認
+      if (this.coin.balanceOf(ask.userId) < ask.price * ask.amount) {
+        this.deleteOrder(ask);
+        continue;
+      }
+      // stockの残高確認
+      if (this.stocks.get(o.stockId).balanceOf(bid.userId) < bid.amount) {
+        this.deleteOrder(bid);
+        continue;
+      }
+      return this.agreeOrders(bid, ask);
     }
-    const mo: Order = matchingOrders[index];
-    const bid: Order = o.type == "bid" ? o : mo;
-    const ask: Order = o.type == "bid" ? mo : o;
-    this.agreeOrders(bid, ask);
   }
 }

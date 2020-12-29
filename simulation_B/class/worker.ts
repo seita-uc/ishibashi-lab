@@ -135,27 +135,20 @@ export default class Worker {
     stock: Stock,
     orders: Order[],
     perceivedPotential: number
-    //coin: Coin
   ): Order {
+    let bidPrice = stock.latestPrice - 1;
     const index = orders
       .sort((a, b) => (a.price > b.price ? -1 : 1))
       .findIndex((o) => o.type == "ask" && o.price > perceivedPotential);
     if (index !== -1) {
-      return new Order(
-        stock.id,
-        this.id,
-        "bid",
-        orders[index].price,
-        1 // TODO 売れるだけ売る
-      );
+      bidPrice = orders[index].price;
     }
-
     return new Order(
       stock.id,
       this.id,
       "bid",
-      stock.latestPrice - 1,
-      1 // TODO 売れるだけ売る
+      bidPrice,
+      stock.balanceOf(this.id)
     );
   }
 }
