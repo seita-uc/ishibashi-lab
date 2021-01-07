@@ -4,6 +4,7 @@ import {
   NoStockBalanceError,
   InsufficientCoinBalanceError,
   NoCoinBalanceError,
+  OrderPriceMismatchError,
 } from "./error";
 import { logger } from "../util/util";
 import Order from "./order";
@@ -68,15 +69,18 @@ export default class Market {
   };
 
   onOrderAgreed = (bid: Order, ask: Order) => {
+    if (bid.price !== ask.price) {
+      throw OrderPriceMismatchError;
+    }
+
+    // TODO agreeした金額と同一のorderがあればそのorderのpriceを変化させる
     try {
       const stock: Stock = this.stocks.get(bid.stockId);
-      // TODO 任意の数量の株をtransferできるようにする
-      // TODO coinのtransferも実装する
 
       let stockTransferAmount: number =
         ask.amount >= bid.amount ? bid.amount : ask.amount;
 
-      // tramsferが失敗した時に前の状態に戻す
+      // transferが失敗した時に前の状態に戻す
       const transferCoinAmount: number = stockTransferAmount * bid.price;
       this.coin.transfer(ask.userId, bid.userId, transferCoinAmount);
       stock.transfer(bid.userId, ask.userId, stockTransferAmount);
@@ -92,6 +96,17 @@ export default class Market {
 
       stock.setLatestPrice(ask.price);
       logger.debug(`set price ${stock.id}: ${stock.latestPrice}`);
+
+      // 同様のorderがある場合、askは価格を下げ、bidは価格をあげる
+      const orders: Order[] = this.orders.get(stock.id);
+      const samePriceOrders: Order[] = orders.filter(
+        (o) => o.price == ask.price
+      );
+      if (samePriceOrders.length != 0) {
+        for (const o of samePriceOrders) {
+          o.price = o.type == "bid" ? o.price + 1 : o.price - 1;
+        }
+      }
     } catch (e) {
       if (
         e.message == InsufficientStockBalanceError.message ||

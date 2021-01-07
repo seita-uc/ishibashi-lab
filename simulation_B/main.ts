@@ -15,9 +15,12 @@ logger.level = "debug";
 //
 // 試行回数
 //
-const tryNum: number = 100;
+const tryNum: number = 10;
+//const tryNum: number = 100;
 const workerNum: number = 100;
 const taskNum: number = 10;
+const minPotential: number = 10;
+const maxPotential: number = 100;
 
 //
 // workerの生成
@@ -26,7 +29,7 @@ const taskNum: number = 10;
 const coin: Coin = new Coin();
 const workers: Worker[] = [];
 for (let i = 0; i < workerNum; i++) {
-  const w: Worker = new Worker(i);
+  const w: Worker = new Worker(i, minPotential, maxPotential);
   // TODO 仮で1000coin発行
   coin.issue(w.id, 1000);
   workers.push(w);
@@ -36,6 +39,7 @@ for (let i = 0; i < workerNum; i++) {
 // workerのppのランダム生成
 //
 // TODO きれいにppが別れるようにする
+// TODO 知らない人のppの初期値をどうするか考える
 workers.forEach((w) => w.initializePerceivedPotentials(workers));
 
 //
@@ -49,8 +53,7 @@ const overallSuccessRates = [];
 //
 // 初期の株配分
 //
-const totalIssueNum = 100;
-const portionNum = totalIssueNum / workerNum;
+const portionNum = 100;
 
 // TODO 初期の株配分を実装
 for (const stock of stocks) {
@@ -69,12 +72,17 @@ for (const stock of stocks) {
     const totalPotential: number = workers
       .map((w: Worker) => w.potential)
       .reduce((r: number, sum: number) => sum + r);
+    const totalMinPotential: number = workers.length * minPotential;
 
     for (let i = 0; i < tryNum; i++) {
       logger.debug(`tryNun: ${i}`);
       const tasks: Task[] = [];
       for (let v = 0; v < taskNum; v++) {
-        const threshold: number = getRandomInt(10, totalPotential / taskNum);
+        // thresholdの設定方法をsimulation間で統一する
+        const threshold: number = getRandomInt(
+          totalMinPotential / taskNum,
+          totalPotential / taskNum
+        );
         const task: Task = new Task(v, manager, threshold);
         tasks.push(task);
       }
@@ -92,7 +100,6 @@ for (const stock of stocks) {
       const successRate: number = (successfulTasks.length / tasks.length) * 100;
       overallSuccessRates.push(successRate);
 
-      // TODO ここのfor loopを非同期かする
       const promises = [];
       for (const w of workers) {
         // perceived potentialを加味して必要があればorderを作成する
@@ -110,6 +117,7 @@ for (const stock of stocks) {
   const overallSuccessRate: number =
     overallSuccessRates.reduce((r, sum) => sum + r) /
     overallSuccessRates.length;
+
   // 全タスクの成功率の平均
   logger.info(overallSuccessRate);
 
@@ -117,5 +125,4 @@ for (const stock of stocks) {
     const s = market.stocks.get(w.id);
     logger.info(`${w.id}: potential ${w.potential}, value ${s.latestPrice}`);
   });
-  logger.info(coin);
 })();

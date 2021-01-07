@@ -6,3 +6,6 @@ export const InsufficientCoinBalanceError = new Error(
   "insufficient coin balance to transfer"
 );
 export const NoCoinBalanceError = new Error("user has no coin balance");
+export const OrderPriceMismatchError = new Error(
+  "price of orders doesn't match"
+);

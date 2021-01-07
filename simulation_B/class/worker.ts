@@ -1,4 +1,4 @@
-import { getRandomInt, logger } from "../util/util";
+import { getRandomInt } from "../util/util";
 import Stock from "./stock";
 import Order from "./order";
 import Market from "./market";
@@ -11,9 +11,9 @@ export default class Worker {
   coin: number;
 
   // TODO coinの概念を導入する
-  constructor(id: number) {
+  constructor(id: number, minPotential: number, maxPotential: number) {
     this.id = id;
-    this.potential = getRandomInt(10, 100);
+    this.potential = getRandomInt(minPotential, maxPotential);
   }
 
   setPerceivedPotential(workerId: number, potential: number) {
@@ -25,8 +25,9 @@ export default class Worker {
       if (this.id == w.id) {
         continue;
       }
-      const pp = getRandomInt(1, 100);
-      this.setPerceivedPotential(w.id, pp);
+      //const pp = getRandomInt(1, 100);
+      this.setPerceivedPotential(w.id, 1);
+      //this.setPerceivedPotential(w.id, pp);
     }
   }
 
@@ -89,11 +90,12 @@ export default class Worker {
         coin
       );
       market.setOrder(order);
-      return;
+      //return;
     }
 
+    // TODO decayを実装してすぐ株を手放すインセンティブをつくる
     if (
-      stock.latestPrice > perceivedPotential &&
+      //stock.latestPrice > perceivedPotential &&
       // stockを持っていないと売れない
       stock.balanceOf(this.id) > 0
     ) {
@@ -102,7 +104,7 @@ export default class Worker {
       //
       const order = this.createBidOrder(stock, orders, perceivedPotential);
       market.setOrder(order);
-      return;
+      //return;
     }
   }
 
@@ -117,7 +119,7 @@ export default class Worker {
     coin: Coin
   ): Order {
     // 買える分だけ買う
-    let askPrice = stock.latestPrice + 1;
+    let askPrice = stock.latestPrice - 1;
     const index = orders
       .sort((a, b) => (a.price < b.price ? -1 : 1))
       .findIndex((o) => o.type == "bid" && o.price < perceivedPotential);
@@ -136,7 +138,7 @@ export default class Worker {
     orders: Order[],
     perceivedPotential: number
   ): Order {
-    let bidPrice = stock.latestPrice - 1;
+    let bidPrice = stock.latestPrice + 1;
     const index = orders
       .sort((a, b) => (a.price > b.price ? -1 : 1))
       .findIndex((o) => o.type == "ask" && o.price > perceivedPotential);

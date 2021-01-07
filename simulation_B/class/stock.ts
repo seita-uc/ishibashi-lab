@@ -10,7 +10,8 @@ export default class Stock {
   constructor(id: number) {
     this.id = id;
     // reputationと同様、乱数でpriceを決める
-    this.latestPrice = getRandomInt(1, 100);
+    //this.latestPrice = getRandomInt(1, 100);
+    this.latestPrice = 1;
   }
 
   setLatestPrice(price: number) {
