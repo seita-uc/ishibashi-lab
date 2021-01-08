@@ -5,18 +5,18 @@ import Task from "./class/task";
 import Market from "./class/market";
 import Stock from "./class/stock";
 import Coin from "./class/coin";
+import * as ObjectsToCsv from "objects-to-csv";
 
 //
 // ログレベルの設定
 //
-//logger.level = "info";
-logger.level = "debug";
+logger.level = "info";
+//logger.level = "debug";
 
 //
 // 試行回数
 //
 const tryNum: number = 10;
-//const tryNum: number = 100;
 const workerNum: number = 100;
 const taskNum: number = 10;
 const minPotential: number = 10;
@@ -48,7 +48,7 @@ workers.forEach((w) => w.initializePerceivedPotentials(workers));
 const stocks: Stock[] = workers.map((w: Worker) => new Stock(w.id));
 const market: Market = new Market(stocks, coin);
 const manager: Manager = new Manager(workerNum + 1);
-const overallSuccessRates = [];
+const successRates = [];
 
 //
 // 初期の株配分
@@ -98,7 +98,7 @@ for (const stock of stocks) {
         t.isCompleted()
       );
       const successRate: number = (successfulTasks.length / tasks.length) * 100;
-      overallSuccessRates.push(successRate);
+      successRates.push(successRate);
 
       const promises = [];
       for (const w of workers) {
@@ -114,15 +114,26 @@ for (const stock of stocks) {
   //
   // 結果を出力する
   //
-  const overallSuccessRate: number =
-    overallSuccessRates.reduce((r, sum) => sum + r) /
-    overallSuccessRates.length;
+  //const overallSuccessRate: number =
+  //successRates.reduce((r, sum) => sum + r) / successRates.length;
 
-  // 全タスクの成功率の平均
-  logger.info(overallSuccessRate);
+  //全タスクの成功率の平均;
+  //logger.debug(overallSuccessRate);
 
   workers.forEach((w) => {
     const s = market.stocks.get(w.id);
-    logger.info(`${w.id}: potential ${w.potential}, value ${s.latestPrice}`);
+    logger.debug(`${w.id}: potential ${w.potential}, value ${s.latestPrice}`);
   });
+
+  //
+  // 結果のcsvを標準出力に吐き出す
+  //
+  const data = successRates.map((rate, index) => {
+    return {
+      tryNum: index + 1,
+      successRate: rate,
+    };
+  });
+  const csv = new ObjectsToCsv(data);
+  console.log(await csv.toString());
 })();
