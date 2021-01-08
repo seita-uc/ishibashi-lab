@@ -21,7 +21,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx ts-node main.ts",
-    "start-plot": "npx ts-node main.ts | python ../chart/chart_1.py"
+    "start-plot": "npx ts-node main.ts | python ../chart/plot.py"
   },
   "author": "",
   "license": "ISC"

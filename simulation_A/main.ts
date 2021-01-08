@@ -3,6 +3,7 @@ import Worker from "./class/worker";
 import Evaluator from "./class/evaluator";
 import Manager from "./class/manager";
 import Task from "./class/task";
+import * as ObjectsToCsv from "objects-to-csv";
 
 // 試行回数
 const tryNum: number = 100;
@@ -21,7 +22,7 @@ for (let i = 0; i < workerNum; i++) {
 const manager: Manager = new Manager(100);
 const evaluator: Evaluator = new Evaluator(99);
 
-const overallSuccessRates = [];
+const successRates = [];
 for (let i = 0; i < tryNum; i++) {
   const totalPotential: number = workers
     .map((w: Worker) => w.potential)
@@ -38,19 +39,33 @@ for (let i = 0; i < tryNum; i++) {
 
   for (const task of tasks) {
     if (!task.isCompleted()) {
-      console.log(task);
+      //console.log(task);
     }
     evaluator.evaluate(task);
   }
   const successfulTasks: Task[] = tasks.filter((t: Task) => t.isCompleted());
   const successRate: number = (successfulTasks.length / tasks.length) * 100;
-  console.log(successRate);
+  //console.log(successRate);
 
-  overallSuccessRates.push(successRate);
+  successRates.push(successRate);
 }
-console.log(workers);
+//console.log(workers);
 
 const overallSuccessRate: number =
-  overallSuccessRates.reduce((r, sum) => sum + r) / overallSuccessRates.length;
+  successRates.reduce((r, sum) => sum + r) / successRates.length;
 // 全タスクの成功率の平均
-console.log(overallSuccessRate);
+//console.log(overallSuccessRate);
+
+//
+// 結果のcsvを標準出力に吐き出す
+//
+(async () => {
+  const data = successRates.map((rate, index) => {
+    return {
+      tryNum: index + 1,
+      successRate: rate,
+    };
+  });
+  const csv = new ObjectsToCsv(data);
+  console.log(await csv.toString());
+})();

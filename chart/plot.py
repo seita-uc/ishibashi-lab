@@ -14,13 +14,13 @@ for i, inputs in enumerate(csv_inputs):
     xValues.append(int(tryNum))
     yValues.append(int(rate))
 
-print(xValues)
-print(yValues)
+# print(xValues)
+# print(yValues)
 
 # グラフの描画
 fig = plt.figure()
 
 ax = fig.add_subplot(2, 1, 1, ylabel='success rate', xlabel='number of trials')
-ax.plot(xValues, yValues, label='line_2')
+ax.plot(xValues, yValues)
 
 plt.show()

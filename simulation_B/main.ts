@@ -16,7 +16,7 @@ logger.level = "info";
 //
 // 試行回数
 //
-const tryNum: number = 10;
+const tryNum: number = 100;
 const workerNum: number = 100;
 const taskNum: number = 10;
 const minPotential: number = 10;
