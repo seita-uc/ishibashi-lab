@@ -30,8 +30,9 @@ const coin: Coin = new Coin();
 const workers: Worker[] = [];
 for (let i = 0; i < workerNum; i++) {
   const w: Worker = new Worker(i, minPotential, maxPotential);
-  // TODO 仮で1000coin発行
-  coin.issue(w.id, 1000);
+  // TODO 仮でcoin発行
+  // TODO coin発行数がstockのmaxIssueNumより小さいとpublic offeringでお金が尽きて終わる
+  coin.issue(w.id, 50000);
   workers.push(w);
 }
 
@@ -45,25 +46,13 @@ workers.forEach((w) => w.initializePerceivedPotentials(workers));
 //
 // 変数の定義
 //
-const stocks: Stock[] = workers.map((w: Worker) => new Stock(w.id));
+const maxIssueNum: number = 10000;
+const stocks: Stock[] = workers.map(
+  (w: Worker) => new Stock(w.id, maxIssueNum)
+);
 const market: Market = new Market(stocks, coin);
 const manager: Manager = new Manager(workerNum + 1);
 const successRates = [];
-
-//
-// 初期の株配分
-//
-const portionNum = 100;
-
-// TODO 初期の株配分を実装
-for (const stock of stocks) {
-  for (let i = 0; i < workerNum; i++) {
-    //const randIndex = getRandomInt(0, workerNum - 1);
-    //const worker = workers[randIndex];
-    const worker = workers[i];
-    stock.issue(worker.id, portionNum);
-  }
-}
 
 (async () => {
   try {

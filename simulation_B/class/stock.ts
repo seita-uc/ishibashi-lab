@@ -1,21 +1,24 @@
-import { getRandomInt } from "../util/util";
 import { InsufficientStockBalanceError, NoStockBalanceError } from "./error";
 
 export default class Stock {
   id: number;
   totalIssued: number = 0;
+  maxIssueNum: number = 0;
   latestPrice: number = 0;
   owners: Map<number, number> = new Map<number, number>();
 
-  constructor(id: number) {
+  constructor(id: number, maxIssueNum: number) {
     this.id = id;
-    // reputationと同様、乱数でpriceを決める
-    //this.latestPrice = getRandomInt(1, 100);
     this.latestPrice = 1;
+    this.maxIssueNum = maxIssueNum;
   }
 
   setLatestPrice(price: number) {
     this.latestPrice = price;
+  }
+
+  isPubliclyOffering(): boolean {
+    return this.totalIssued < this.maxIssueNum;
   }
 
   issue(to: number, amount: number) {

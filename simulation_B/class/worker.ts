@@ -32,6 +32,7 @@ export default class Worker {
   }
 
   async reflectMarketStatus(market: Market) {
+    // TODO IPOを実装
     const priceGaps = new Map<number, number>();
     for (const entry of this.perceivedPotentials.entries()) {
       const workerId: number = entry[0];
@@ -83,6 +84,24 @@ export default class Worker {
       //
       // 買い注文
       //
+
+      // offeringしていたら、買えるだけ買う
+      if (stock.isPubliclyOffering()) {
+        const offerableAmount = stock.maxIssueNum - stock.totalIssued;
+        const buyableAmount = this.getBuyableAmount(
+          coin.balanceOf(this.id),
+          stock.latestPrice
+        );
+        if (offerableAmount > buyableAmount) {
+          stock.issue(this.id, buyableAmount);
+          coin.transfer(this.id, -1, buyableAmount);
+          return;
+        }
+        stock.issue(this.id, offerableAmount);
+        coin.transfer(this.id, -1, offerableAmount);
+        return;
+      }
+
       const order = this.createAskOrder(
         stock,
         orders,
@@ -90,7 +109,6 @@ export default class Worker {
         coin
       );
       market.setOrder(order);
-      //return;
     }
 
     // TODO decayを実装してすぐ株を手放すインセンティブをつくる
