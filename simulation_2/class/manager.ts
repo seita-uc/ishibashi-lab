@@ -7,7 +7,7 @@ export default class Manager extends Worker {
     super(id, 0, 0);
   }
 
-  // valueの閾値に満たすまで割り振る
+  // priceの閾値に満たすまで割り振る
   assignWorkersToTasks(workers: Worker[], tasks: Task[], market: Market) {
     if (tasks.length === 0) {
       throw "tasks must not be empty";

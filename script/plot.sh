@@ -2,16 +2,16 @@
 
 echo $PWD
 ROOT=$PWD
-SIM_B=$ROOT/simulation_B
-SIM_A=$ROOT/simulation_A
+SIM_1=$ROOT/simulation_1
+SIM_2=$ROOT/simulation_2
 
 mkdir -p $ROOT/tmp
 
-cd $SIM_B
-yarn -s start > $ROOT/tmp/sim_b.csv
+cd $SIM_1
+yarn -s start > $ROOT/tmp/sim_1.csv
 
-cd $SIM_A
-yarn -s start > $ROOT/tmp/sim_a.csv
+cd $SIM_2
+yarn -s start > $ROOT/tmp/sim_2.csv
 
 cd $ROOT
 python $ROOT/chart/plot_both.py
