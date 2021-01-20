@@ -17,9 +17,9 @@ logger.level = "info";
 // 試行回数
 //
 const tryNum: number = 100;
-const workerNum: number = 100;
+const workerNum: number = 50;
 const taskNum: number = 10;
-const minPotential: number = 10;
+const minPotential: number = 1;
 const maxPotential: number = 100;
 
 //
@@ -30,8 +30,6 @@ const coin: Coin = new Coin();
 const workers: Worker[] = [];
 for (let i = 0; i < workerNum; i++) {
   const w: Worker = new Worker(i, minPotential, maxPotential);
-  // TODO 仮でcoin発行
-  // TODO coin発行数がstockのmaxIssueNumより小さいとpublic offeringでお金が尽きて終わる
   coin.issue(w.id, 50000);
   workers.push(w);
 }
@@ -53,6 +51,7 @@ const stocks: Stock[] = workers.map(
 const market: Market = new Market(stocks, coin);
 const manager: Manager = new Manager(workerNum + 1);
 const successRates = [];
+const diffRates = [];
 
 (async () => {
   try {
@@ -95,6 +94,14 @@ const successRates = [];
         promises.push(w.reflectMarketStatus(market));
       }
       await Promise.all(promises);
+
+      const diffs = workers.map((w) => {
+        return (
+          ((market.stocks.get(w.id).latestPrice - w.potential) / w.potential) *
+          100
+        );
+      });
+      diffRates.push(diffs);
     }
   } catch (e) {
     logger.error(e);
@@ -117,11 +124,23 @@ const successRates = [];
   //
   // 結果のcsvを標準出力に吐き出す
   //
-  const data = successRates.map((rate, index) => {
-    return {
+  //const data = successRates.map((rate, index) => {
+  //return {
+  //tryNum: index + 1,
+  //successRate: rate,
+  //};
+  //});
+  //const csv = new ObjectsToCsv(data);
+  //console.log(await csv.toString());
+
+  const data = diffRates.map((rates, index) => {
+    let result = {
       tryNum: index + 1,
-      successRate: rate,
     };
+    for (let i = 0; i < rates.length; i++) {
+      result[`worker_${i}`] = rates[i];
+    }
+    return result;
   });
   const csv = new ObjectsToCsv(data);
   console.log(await csv.toString());

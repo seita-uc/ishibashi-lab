@@ -3,8 +3,8 @@ from random import randint, random
 import sys
 import csv
 
-sim_a_csv_file = open("./tmp/sim_a.csv", "r", errors="", newline="")
-sim_b_csv_file = open("./tmp/sim_b.csv", "r", errors="", newline="")
+sim_a_csv_file = open("./tmp/sim_1.csv", "r", errors="", newline="")
+sim_b_csv_file = open("./tmp/sim_2.csv", "r", errors="", newline="")
 
 sim_a_data = csv.reader(sim_a_csv_file, delimiter=",", doublequote=True, lineterminator="\r\n", quotechar='"', skipinitialspace=True)
 sim_b_data = csv.reader(sim_b_csv_file, delimiter=",", doublequote=True, lineterminator="\r\n", quotechar='"', skipinitialspace=True)
@@ -17,7 +17,7 @@ for i, data in enumerate(sim_a_data):
     tryNum = data[0]
     rate = data[1]
     axValues.append(int(tryNum))
-    ayValues.append(int(rate))
+    ayValues.append(float(rate))
 
 bxValues = []
 byValues = []
@@ -27,17 +27,17 @@ for i, data in enumerate(sim_b_data):
     tryNum = data[0]
     rate = data[1]
     bxValues.append(int(tryNum))
-    byValues.append(int(rate))
+    byValues.append(float(rate))
 
 # グラフの描画
 fig = plt.figure()
 fig.tight_layout()
 
 x = fig.add_subplot(2, 1, 1, ylabel='success rate', xlabel='number of trials')
-x.plot(axValues, ayValues, label='simulation_a')
+x.plot(axValues, ayValues, label='simulation_1')
 
 # bx = fig.add_subplot(2, 1, 2, ylabel='success rate', xlabel='number of trials')
-x.plot(bxValues, byValues, label='simulation_b')
+x.plot(bxValues, byValues, label='simulation_2')
 
 x.legend(loc=0)
 

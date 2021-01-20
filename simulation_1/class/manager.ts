@@ -16,9 +16,10 @@ export default class Manager extends Worker {
       a.thresholdToBeCompleted > b.thresholdToBeCompleted ? -1 : 1
     );
     // reputationの高い順にworkerをsortする
-    for (const w of workers.sort((aw: Worker, bw: Worker) =>
-      aw.reputation < bw.reputation ? 1 : -1
-    )) {
+    for (const w of workers) {
+      //for (const w of workers.sort((aw: Worker, bw: Worker) =>
+      //aw.reputation < bw.reputation ? 1 : -1
+      //)) {
       const index: number = tasks.findIndex(
         (t: Task) => t.getReputationSum() < t.thresholdToBeCompleted
       );

@@ -7,15 +7,16 @@ import * as ObjectsToCsv from "objects-to-csv";
 
 // 試行回数
 const tryNum: number = 100;
-const workerNum: number = 10;
-const taskNum: number = 5;
+const workerNum: number = 50;
+const taskNum: number = 10;
+const minPotential: number = 1;
+const maxPotential: number = 100;
 
 // workerの生成
 const workers: Worker[] = [];
 for (let i = 0; i < workerNum; i++) {
-  const potential = getRandomInt(10, 100);
+  const potential = getRandomInt(minPotential, maxPotential);
   const w: Worker = new Worker(i, potential);
-  //const w: Worker = new Worker(i, i * 10 + 10);
   workers.push(w);
 }
 
@@ -23,14 +24,18 @@ const manager: Manager = new Manager(100);
 const evaluator: Evaluator = new Evaluator(99);
 
 const successRates = [];
+const diffRates = [];
 for (let i = 0; i < tryNum; i++) {
   const totalPotential: number = workers
     .map((w: Worker) => w.potential)
     .reduce((r: number, sum: number) => sum + r);
+  const totalMinPotential: number = workers.length * minPotential;
   const tasks: Task[] = [];
   for (let v = 0; v < taskNum; v++) {
-    // TODO reputationの合計値をtaskの総数で割った数が最大値の乱数にした理由をまとめる
-    const threshold: number = getRandomInt(10, totalPotential / taskNum);
+    const threshold: number = getRandomInt(
+      totalMinPotential / taskNum,
+      totalPotential / taskNum
+    );
     const task: Task = new Task(v, manager, threshold);
     tasks.push(task);
   }
@@ -39,32 +44,42 @@ for (let i = 0; i < tryNum; i++) {
 
   for (const task of tasks) {
     if (!task.isCompleted()) {
-      //console.log(task);
     }
     evaluator.evaluate(task);
   }
+
   const successfulTasks: Task[] = tasks.filter((t: Task) => t.isCompleted());
   const successRate: number = (successfulTasks.length / tasks.length) * 100;
-  //console.log(successRate);
-
   successRates.push(successRate);
-}
-//console.log(workers);
 
-const overallSuccessRate: number =
-  successRates.reduce((r, sum) => sum + r) / successRates.length;
-// 全タスクの成功率の平均
-//console.log(overallSuccessRate);
+  const diffs = workers.map((w) => {
+    return ((w.reputation - w.potential) / w.potential) * 100;
+  });
+  diffRates.push(diffs);
+}
 
 //
 // 結果のcsvを標準出力に吐き出す
 //
+//(async () => {
+//const data = successRates.map((rate, index) => {
+//return {
+//tryNum: index + 1,
+//successRate: rate,
+//};
+//});
+//const csv = new ObjectsToCsv(data);
+//console.log(await csv.toString());
+//})();
 (async () => {
-  const data = successRates.map((rate, index) => {
-    return {
+  const data = diffRates.map((rates, index) => {
+    let result = {
       tryNum: index + 1,
-      successRate: rate,
     };
+    for (let i = 0; i < rates.length; i++) {
+      result[`worker_${i}`] = rates[i];
+    }
+    return result;
   });
   const csv = new ObjectsToCsv(data);
   console.log(await csv.toString());
