@@ -51,7 +51,7 @@ const stocks: Stock[] = workers.map(
 const market: Market = new Market(stocks, coin);
 const manager: Manager = new Manager(workerNum + 1);
 const successRates = [];
-const diffRates = [];
+const overallDiffs = [];
 
 (async () => {
   try {
@@ -96,12 +96,9 @@ const diffRates = [];
       await Promise.all(promises);
 
       const diffs = workers.map((w) => {
-        return (
-          ((market.stocks.get(w.id).latestPrice - w.potential) / w.potential) *
-          100
-        );
+        return market.stocks.get(w.id).latestPrice - w.potential;
       });
-      diffRates.push(diffs);
+      overallDiffs.push(diffs);
     }
   } catch (e) {
     logger.error(e);
@@ -133,12 +130,12 @@ const diffRates = [];
   //const csv = new ObjectsToCsv(data);
   //console.log(await csv.toString());
 
-  const data = diffRates.map((rates, index) => {
+  const data = overallDiffs.map((diffs, index) => {
     let result = {
       tryNum: index + 1,
     };
-    for (let i = 0; i < rates.length; i++) {
-      result[`worker_${i}`] = rates[i];
+    for (let i = 0; i < diffs.length; i++) {
+      result[`worker_${i}`] = diffs[i];
     }
     return result;
   });

@@ -4,7 +4,7 @@ import sys
 import csv
 
 fig = plt.figure()
-x = fig.add_subplot(2, 1, 1, ylabel='difference rate', xlabel='number of trials')
+x = fig.add_subplot(2, 1, 1, ylabel='difference', xlabel='number of trials')
 
 csv_inputs = csv.reader(sys.stdin)
 xValues = []

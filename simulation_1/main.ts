@@ -24,7 +24,7 @@ const manager: Manager = new Manager(100);
 const evaluator: Evaluator = new Evaluator(99);
 
 const successRates = [];
-const diffRates = [];
+const overallDiffs = [];
 for (let i = 0; i < tryNum; i++) {
   const totalPotential: number = workers
     .map((w: Worker) => w.potential)
@@ -53,9 +53,9 @@ for (let i = 0; i < tryNum; i++) {
   successRates.push(successRate);
 
   const diffs = workers.map((w) => {
-    return ((w.reputation - w.potential) / w.potential) * 100;
+    return w.reputation - w.potential;
   });
-  diffRates.push(diffs);
+  overallDiffs.push(diffs);
 }
 
 //
@@ -71,13 +71,14 @@ for (let i = 0; i < tryNum; i++) {
 //const csv = new ObjectsToCsv(data);
 //console.log(await csv.toString());
 //})();
+
 (async () => {
-  const data = diffRates.map((rates, index) => {
+  const data = overallDiffs.map((diffs, index) => {
     let result = {
       tryNum: index + 1,
     };
-    for (let i = 0; i < rates.length; i++) {
-      result[`worker_${i}`] = rates[i];
+    for (let i = 0; i < diffs.length; i++) {
+      result[`worker_${i}`] = diffs[i];
     }
     return result;
   });
