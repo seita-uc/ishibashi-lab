@@ -12,7 +12,7 @@ for i, inputs in enumerate(csv_inputs):
     tryNum = inputs[0]
     rate = inputs[1]
     xValues.append(int(tryNum))
-    yValues.append(int(rate))
+    yValues.append(float(rate))
 
 # print(xValues)
 # print(yValues)

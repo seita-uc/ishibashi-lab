@@ -111,18 +111,12 @@ export default class Worker {
       market.setOrder(order);
     }
 
-    // TODO decayを実装してすぐ株を手放すインセンティブをつくる
-    if (
-      //stock.latestPrice > perceivedPotential &&
-      // stockを持っていないと売れない
-      stock.balanceOf(this.id) > 0
-    ) {
+    if (stock.balanceOf(this.id) > 0) {
       //
       // 売り注文
       //
       const order = this.createBidOrder(stock, orders, perceivedPotential);
       market.setOrder(order);
-      //return;
     }
   }
 

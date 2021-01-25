@@ -25,11 +25,9 @@ export default class Task {
         if (worker.id === w.id) {
           continue;
         }
-        // TODO potentialの近似値を持つ
         worker.setPerceivedPotential(
           w.id,
-          //getRandomInt(w.potential - 5, w.potential + 5)
-          w.potential
+          getRandomInt(w.potential - 5, w.potential + 5)
         );
       }
     }
