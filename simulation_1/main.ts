@@ -53,7 +53,7 @@ for (let i = 0; i < tryNum; i++) {
   successRates.push(successRate);
 
   const diffs = workers.map((w) => {
-    return w.reputation - w.potential;
+    return Math.abs(w.reputation - w.potential);
   });
   overallDiffs.push(diffs);
 }

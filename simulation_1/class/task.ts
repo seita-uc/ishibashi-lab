@@ -20,17 +20,21 @@ export default class Task {
     if (this.assignedWorkers.length === 0) {
       return false;
     }
-    const potentials: number[] = this.assignedWorkers.map(
-      (w: Worker) => w.potential
-    );
-    const sum: number = potentials.reduce((sum: number, p: number) => sum + p);
-    return sum >= this.thresholdToBeCompleted;
+    return this.getPotentialSum() >= this.thresholdToBeCompleted;
   }
 
   getReputationSum(): number {
     let sum: number = 0;
     for (const w of this.assignedWorkers) {
       sum += w.reputation;
+    }
+    return sum;
+  }
+
+  getPotentialSum(): number {
+    let sum: number = 0;
+    for (const w of this.assignedWorkers) {
+      sum += w.potential;
     }
     return sum;
   }

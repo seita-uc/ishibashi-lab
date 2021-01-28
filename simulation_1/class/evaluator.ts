@@ -9,6 +9,12 @@ export default class Evaluator extends Worker {
   evaluate(task: Task) {
     for (const worker of task.assignedWorkers) {
       if (task.isCompleted()) {
+        const isExcellent =
+          task.getPotentialSum() >= task.thresholdToBeCompleted * 1.5;
+        if (isExcellent) {
+          worker.reputation += 1.5;
+        }
+
         worker.reputation += 1;
         continue;
       }

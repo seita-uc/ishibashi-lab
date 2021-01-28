@@ -96,7 +96,7 @@ const overallDiffs = [];
       await Promise.all(promises);
 
       const diffs = workers.map((w) => {
-        return market.stocks.get(w.id).latestPrice - w.potential;
+        return Math.abs(market.stocks.get(w.id).latestPrice - w.potential);
       });
       overallDiffs.push(diffs);
     }
