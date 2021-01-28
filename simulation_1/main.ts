@@ -61,27 +61,27 @@ for (let i = 0; i < tryNum; i++) {
 //
 // 結果のcsvを標準出力に吐き出す
 //
-//(async () => {
-//const data = successRates.map((rate, index) => {
-//return {
-//tryNum: index + 1,
-//successRate: rate,
-//};
-//});
-//const csv = new ObjectsToCsv(data);
-//console.log(await csv.toString());
-//})();
-
 (async () => {
-  const data = overallDiffs.map((diffs, index) => {
-    let result = {
+  const data = successRates.map((rate, index) => {
+    return {
       tryNum: index + 1,
+      successRate: rate,
     };
-    for (let i = 0; i < diffs.length; i++) {
-      result[`worker_${i}`] = diffs[i];
-    }
-    return result;
   });
   const csv = new ObjectsToCsv(data);
   console.log(await csv.toString());
 })();
+
+//(async () => {
+//const data = overallDiffs.map((diffs, index) => {
+//let result = {
+//tryNum: index + 1,
+//};
+//for (let i = 0; i < diffs.length; i++) {
+//result[`worker_${i}`] = diffs[i];
+//}
+//return result;
+//});
+//const csv = new ObjectsToCsv(data);
+//console.log(await csv.toString());
+//})();

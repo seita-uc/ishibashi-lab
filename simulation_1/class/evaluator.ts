@@ -13,6 +13,7 @@ export default class Evaluator extends Worker {
           task.getPotentialSum() >= task.thresholdToBeCompleted * 1.5;
         if (isExcellent) {
           worker.reputation += 1.5;
+          continue;
         }
 
         worker.reputation += 1;
